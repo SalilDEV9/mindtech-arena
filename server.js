@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('node:crypto');
 const Team = require('./models/Team');
 
 const app = express();
@@ -12,6 +13,63 @@ const MONGODB_URI = process.env.MONGODB_URI || (process.env.VERCEL ? null : 'mon
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false, limit: '2kb' }));
+
+// Signed, expiring session: password stays on the server and is never stored in browser storage.
+const SESSION_COOKIE = 'arena_admin';
+const SESSION_SECONDS = 8 * 60 * 60;
+function signature(value) {
+  return crypto.createHmac('sha256', process.env.ADMIN_PASSWORD).update(value).digest('hex');
+}
+function equal(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const left = crypto.createHash('sha256').update(a).digest();
+  const right = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(left, right);
+}
+function authenticated(req) {
+  if (!process.env.ADMIN_PASSWORD) return false;
+  const cookie = (req.headers.cookie || '').split(';').map(v => v.trim()).find(v => v.startsWith(SESSION_COOKIE + '='));
+  if (!cookie) return false;
+  const token = cookie.slice(SESSION_COOKIE.length + 1);
+  const parts = token.split('.');
+  if (parts.length !== 3 || !/^\d+$/.test(parts[0]) || !/^[a-f0-9]{32}$/.test(parts[1])) return false;
+  const expires = Number(parts[0]);
+  const now = Math.floor(Date.now() / 1000);
+  return expires > now && expires <= now + SESSION_SECONDS && equal(parts[2], signature(parts[0] + '.' + parts[1]));
+}
+function requireAdmin(req, res, next) {
+  res.set('Cache-Control', 'private, no-store');
+  if (!authenticated(req)) {
+    if (req.originalUrl.startsWith('/api/')) return res.status(401).json({success: false, error: 'Enter the admin password to open the leaderboard.'});
+    return res.redirect('/leaderboard/login');
+  }
+  next();
+}
+const cookieOptions = {httpOnly: true, secure: Boolean(process.env.VERCEL || process.env.NODE_ENV === 'production'), sameSite: 'strict', path: '/'};
+app.get('/leaderboard/login', (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  if (authenticated(req)) return res.redirect('/leaderboard');
+  res.sendFile(path.join(__dirname, 'dist', 'leaderboard-login.html'));
+});
+app.post('/leaderboard/login', (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  if (!process.env.ADMIN_PASSWORD) return res.status(503).send('Admin access is not configured. Contact the organisers.');
+  if (!equal(req.body.password, process.env.ADMIN_PASSWORD)) return res.redirect(303, '/leaderboard/login?error=1');
+  const payload = Math.floor(Date.now() / 1000) + SESSION_SECONDS + '.' + crypto.randomBytes(16).toString('hex');
+  res.cookie(SESSION_COOKIE, payload + '.' + signature(payload), {...cookieOptions, maxAge: SESSION_SECONDS * 1000});
+  res.redirect(303, '/leaderboard');
+});
+app.post('/leaderboard/logout', (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  res.clearCookie(SESSION_COOKIE, cookieOptions);
+  res.redirect(303, '/leaderboard/login');
+});
+// Run before static middleware, including direct HTML paths.
+app.get(['/leaderboard', '/leaderboard.html'], requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'leaderboard.html'));
+});
+app.use('/api/leaderboard', requireAdmin);
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Reuse one connection and await it before database-backed requests.
@@ -296,11 +354,6 @@ async function handleBulkDelete(req, res) {
 
 app.delete('/api/leaderboard/teams', handleBulkDelete);
 app.post('/api/leaderboard/teams/delete', handleBulkDelete);
-
-// Route for Leaderboard page
-app.get('/leaderboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'leaderboard.html'));
-});
 
 // Serve frontend for all other routes
 app.get('*', (req, res) => {

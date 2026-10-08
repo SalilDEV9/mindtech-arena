@@ -219,3 +219,7 @@ Deploy the `arshal-work` branch from the repository root with the Express framew
 In Vercel Settings → Environment Variables, configure `MONGODB_URI` with your MongoDB Atlas connection string and `ADMIN_PASSWORD` with a private admin password for Production. Configure Preview separately if needed. Do not commit those values. Redeploy after setting them.
 
 Verify `/api/health` reports `database: connected`, then open `/leaderboard`. An empty database is valid; add actual event teams through the password-protected Add Team form. The sample seed is optional and is not run during deployment.
+
+## Private leaderboard access
+
+`/leaderboard` and `/leaderboard.html` require the existing `ADMIN_PASSWORD` via `/leaderboard/login`. All `/api/leaderboard` routes also require the signed session cookie. Sessions expire after eight hours; use **Lock leaderboard** to sign out. Cookies are HttpOnly, SameSite=Strict, and Secure on Vercel. Password changes invalidate existing sessions. The public event page stays accessible. Private leaderboard HTML is excluded from Vercel CDN output. Existing write actions also retain their password confirmation.

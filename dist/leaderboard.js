@@ -332,6 +332,7 @@ async function loadLeaderboard(page = 1, shouldScroll = false) {
 
   try {
     const res = await fetch(`/api/leaderboard?page=${page}&limit=${LEADERBOARD_LIMIT}`);
+    if (res.status === 401) { window.location.replace('/leaderboard/login'); return; }
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.error || `Server responded with status ${res.status}`);
