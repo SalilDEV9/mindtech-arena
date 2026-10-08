@@ -104,6 +104,11 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+// Route for Leaderboard page
+app.get('/leaderboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'leaderboard.html'));
+});
+
 // Serve frontend for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));

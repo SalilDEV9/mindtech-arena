@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111110"><meta name="description" content="Live Leaderboard for MindTech Arena by MindQuest, IIIT Kottayam. Real-time scores and standings of competing teams.">
+<title>Leaderboard — MindTech Arena</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-leaderboard">
+<a class="skip" href="#leaderboard-content">Skip to leaderboard</a>
+
+<header class="header">
+  <a href="/" class="brand" aria-label="MindTech Arena home">
+    <img class="official-logo" src="assets/mindquest-logo.jpg" width="60" height="60" alt="MindQuest logo">
+    <span>MINDQUEST<span class="brand-small">PRESENTS MINDTECH ARENA</span></span>
+  </a>
+  <nav aria-label="Main navigation">
+    <a href="/#about">The arena</a>
+    <a href="/#rounds">The rounds</a>
+    <a href="/#details">Event details</a>
+    <a href="/leaderboard" class="active-nav-link" aria-current="page">Leaderboard</a>
+    <a href="/#faq">FAQs</a>
+  </nav>
+  <a class="nav-cta" href="https://makemypass.com/event/mindtech-arena" target="_blank" rel="noopener noreferrer">Join the arena <span>↗</span></a>
+  <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav">
+    <span></span><span></span>
+  </button>
+</header>
+
+<div class="mobile-nav" id="mobile-nav" hidden>
+  <a href="/#about">The arena</a>
+  <a href="/#rounds">The rounds</a>
+  <a href="/#details">Event details</a>
+  <a href="/leaderboard" class="active-nav-link" aria-current="page">Leaderboard ↗</a>
+  <a href="/#faq">FAQs</a>
+  <a href="https://makemypass.com/event/mindtech-arena" target="_blank" rel="noopener noreferrer">Join the arena ↗</a>
+</div>
+
+<main id="leaderboard-content">
+  <section class="leaderboard-hero">
+    <div class="leaderboard-hero-inner">
+      <div class="hero-rule">
+        <span><i class="status-dot"></i> MINDQUEST × IIIT KOTTAYAM</span>
+        <span>LIVE COMPETITION STANDINGS</span>
+      </div>
+      
+      <div class="leaderboard-title-row">
+        <div>
+          <div class="eyebrow">OFFICIAL LIVE STANDINGS</div>
+          <h1><span>ARENA</span><span class="red-text">LEADERBOARD<span class="title-spark" aria-hidden="true">✳</span></span></h1>
+          <p>Real-time scores, team rankings, and points table across all three rounds of MindTech Arena.</p>
+        </div>
+        <div class="leaderboard-meta">
+          <div>
+            <span class="tiny">TEAMS COMPETING</span>
+            <strong id="meta-total-teams">—</strong>
+          </div>
+          <div>
+            <span class="tiny">TOP SCORE</span>
+            <strong id="meta-top-score" class="red-text">—</strong>
+          </div>
+          <div>
+            <span class="tiny">STATUS</span>
+            <strong class="live-tag"><i class="status-dot"></i> LIVE</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="leaderboard-page-section">
+    <div class="leaderboard-card">
+      <div class="leaderboard-table-wrap">
+        <table class="leaderboard-table" id="leaderboard-table">
+          <thead>
+            <tr>
+              <th class="col-rank"># RANK</th>
+              <th class="col-team">TEAM &amp; LEADER</th>
+              <th class="col-id">TEAM ID</th>
+              <th class="col-points">POINTS</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- Populated dynamically via JS from MongoDB API -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="leaderboard-loader" class="leaderboard-state" hidden>
+        <div class="spinner"></div>
+        <p>Fetching arena standings from database...</p>
+      </div>
+
+      <div id="leaderboard-error" class="leaderboard-state" hidden>
+        <span class="state-icon">⚠️</span>
+        <p id="leaderboard-error-msg">Connecting to leaderboard database...</p>
+        <button type="button" class="retry-btn" id="leaderboard-retry">Retry Connection ↗</button>
+      </div>
+
+      <div id="leaderboard-empty" class="leaderboard-state" hidden>
+        <span class="state-icon">📊</span>
+        <p>No team records found yet. Points will appear once rounds commence.</p>
+      </div>
+
+      <div class="leaderboard-pagination" id="leaderboard-pagination">
+        <div class="pagination-info" id="pagination-info">Showing teams —</div>
+        <div class="pagination-actions">
+          <button type="button" id="prev-page-btn" class="page-btn" disabled><span>←</span> PREV</button>
+          <div id="page-numbers" class="page-numbers"></div>
+          <button type="button" id="next-page-btn" class="page-btn" disabled>NEXT <span>→</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="leaderboard-footer-actions">
+      <a href="/" class="text-link">← Return to Arena Overview</a>
+      <a class="button primary" href="https://makemypass.com/event/mindtech-arena" target="_blank" rel="noopener noreferrer">
+        Register on MakeMyPass <span>↗</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="/" class="footer-brand">MIND<span>TECH</span> ARENA<span class="footer-spark">✳</span></a>
+  <div class="footer-bottom">
+    <span>An event by MindQuest · IIIT Kottayam</span>
+    <span>THINK FAST. TEAM UP. CREATE.</span>
+    <a href="tel:+919572349620">Contact: 9572349620</a>
+    <a href="#">Back to top ↑</a>
+  </div>
+</footer>
+
+<div id="toast" role="status" class="toast"></div>
+
+<script src="leaderboard.js"></script>
+</body>
+</html>
