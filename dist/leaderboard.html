@@ -38,48 +38,50 @@
   <a href="/#faq">FAQs</a>
 </div>
 
-<main id="leaderboard-content" class="lb-main-container">
-  <!-- Hero Section -->
-  <section class="lb-hero-section">
-    <div class="lb-top-bar">
-      <span><i class="status-dot"></i> MINDQUEST × IIIT KOTTAYAM</span>
-      <span>OFFICIAL LIVE ARENA STANDINGS</span>
+<main id="leaderboard-content" class="lb-centered-layout">
+  <!-- Hero / Header Section -->
+  <section class="lb-hero-center">
+    <div class="lb-badge-pill">
+      <i class="status-dot"></i> MINDQUEST × IIIT KOTTAYAM &nbsp;·&nbsp; OFFICIAL LIVE STANDINGS
     </div>
     
-    <div class="lb-header-block">
-      <div class="lb-header-text">
-        <div class="eyebrow">REAL-TIME COMPETITION SCORES</div>
-        <h1 class="lb-title"><span>ARENA</span><span class="red-text">LEADERBOARD<span class="title-spark" aria-hidden="true">✳</span></span></h1>
-        <p class="lb-subtitle">Live scores, rankings, and performance points of all participating teams across all three rounds of MindTech Arena.</p>
-      </div>
+    <h1 class="lb-main-title">
+      <span>ARENA</span>
+      <span class="red-text">LEADERBOARD<span class="title-spark" aria-hidden="true">✳</span></span>
+    </h1>
+    
+    <p class="lb-main-desc">
+      Real-time scores, team rankings, and performance points of all participating teams across all three rounds of MindTech Arena.
+    </p>
 
-      <!-- Quick Stats Grid -->
-      <div class="lb-stats-grid">
-        <div class="lb-stat-box">
-          <span class="tiny">TEAMS COMPETING</span>
-          <strong id="meta-total-teams">—</strong>
-        </div>
-        <div class="lb-stat-box highlight-box">
-          <span class="tiny">TOP SCORE</span>
-          <strong id="meta-top-score" class="red-text">—</strong>
-        </div>
-        <div class="lb-stat-box">
-          <span class="tiny">STATUS</span>
-          <strong class="live-indicator"><i class="status-dot"></i> LIVE SYNC</strong>
-        </div>
+    <!-- Centered Quick Stats Bar -->
+    <div class="lb-stat-cards">
+      <div class="lb-stat-card">
+        <span class="stat-label">TEAMS COMPETING</span>
+        <strong id="meta-total-teams" class="stat-number">—</strong>
+      </div>
+      <div class="lb-stat-card highlight-card">
+        <span class="stat-label">TOP SCORE</span>
+        <strong id="meta-top-score" class="stat-number red-text">—</strong>
+      </div>
+      <div class="lb-stat-card">
+        <span class="stat-label">STATUS</span>
+        <strong class="stat-number live-tag"><i class="status-dot"></i> LIVE SYNC</strong>
       </div>
     </div>
   </section>
 
   <!-- Leaderboard Table Section -->
-  <section class="lb-table-section">
-    <div class="lb-card">
-      <div class="lb-card-header">
-        <div class="lb-card-heading">
-          <h3>OFFICIAL POINTS TABLE</h3>
-          <span class="tiny">SORTED BY HIGHEST POINTS</span>
+  <section class="lb-table-container">
+    <div class="lb-main-card">
+      <div class="lb-card-topbar">
+        <div class="lb-topbar-left">
+          <h2>OFFICIAL POINTS TABLE</h2>
+          <span class="topbar-sub">SORTED IN DESCENDING ORDER OF POINTS</span>
         </div>
-        <span id="lb-sync-time" class="tiny live-sync-text">● Live from MongoDB</span>
+        <div class="lb-topbar-right">
+          <span class="live-pulse-dot"></span> LIVE FROM DATABASE
+        </div>
       </div>
 
       <div class="leaderboard-table-wrap">
@@ -128,9 +130,11 @@
       </div>
     </div>
 
-    <!-- Navigation Link Back to Home -->
-    <div class="lb-bottom-nav">
-      <a href="/" class="button-outline"><span>←</span> Return to Arena Overview</a>
+    <!-- Centered Bottom Navigation -->
+    <div class="lb-back-wrapper">
+      <a href="/" class="lb-back-btn">
+        <span>←</span> Return to Arena Overview
+      </a>
     </div>
   </section>
 </main>
