@@ -104,6 +104,72 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+// POST /api/leaderboard/scores - Password-protected bulk score update
+app.post('/api/leaderboard/scores', async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      error: 'Database connection not available.',
+    });
+  }
+
+  const { password, updates } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD || 'testingPass';
+
+  if (!password || password !== adminPassword) {
+    return res.status(401).json({
+      success: false,
+      error: 'Incorrect admin password.',
+    });
+  }
+
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'No updates provided.',
+    });
+  }
+
+  // Validate updates
+  const bulkOps = [];
+  for (const item of updates) {
+    const pts = Number(item.points);
+    if (!item.teamId || isNaN(pts) || pts < 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid score for team ${item.teamId || 'unknown'}. Points must be a non-negative number.`,
+      });
+    }
+
+    bulkOps.push({
+      updateOne: {
+        filter: { teamId: item.teamId },
+        update: {
+          $set: {
+            points: Math.round(pts),
+            updatedAt: new Date(),
+          },
+        },
+      },
+    });
+  }
+
+  try {
+    const result = await Team.bulkWrite(bulkOps);
+    res.json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount || updates.length} team score(s).`,
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error('Error updating team scores:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update scores in database.',
+    });
+  }
+});
+
 // Route for Leaderboard page
 app.get('/leaderboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'leaderboard.html'));

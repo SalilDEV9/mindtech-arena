@@ -81,7 +81,12 @@
           <span class="topbar-sub">SORTED IN DESCENDING ORDER OF POINTS</span>
         </div>
         <div class="lb-topbar-right">
-          <span class="live-pulse-dot"></span> LIVE FROM DATABASE
+          <button type="button" id="btn-update-scores" class="btn-update-scores" disabled title="Edit scores on rows and click here to save">
+            <span class="update-icon">⚡</span>
+            <span>Update Scores</span>
+            <span id="staged-count-badge" class="staged-badge" hidden>0</span>
+          </button>
+          <span class="sync-status"><span class="live-pulse-dot"></span> LIVE FROM DATABASE</span>
         </div>
       </div>
 
@@ -138,6 +143,50 @@
     </div>
   </section>
 </main>
+
+<!-- Password Verification Modal for Score Updates -->
+<div id="password-modal" class="lb-modal-backdrop" hidden>
+  <div class="lb-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="lb-modal-header">
+      <div class="modal-icon-wrap">🔒</div>
+      <div>
+        <h3 id="modal-title">Authorize Score Updates</h3>
+        <p class="modal-sub">Enter the administrator password to commit pending changes to the database.</p>
+      </div>
+    </div>
+
+    <form id="password-form" class="lb-modal-body">
+      <div class="modal-changes-summary" id="modal-changes-summary">
+        <!-- Summary of staged changes -->
+      </div>
+
+      <div class="form-group">
+        <label for="admin-password-input">ADMIN PASSWORD</label>
+        <input
+          type="password"
+          id="admin-password-input"
+          class="modal-input"
+          placeholder="Enter admin password..."
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <div id="modal-error-alert" class="modal-error-alert" hidden>
+        <span class="error-icon">⚠️</span>
+        <span id="modal-error-text">Wrong password. Please try again.</span>
+      </div>
+
+      <div class="lb-modal-actions">
+        <button type="button" id="modal-cancel-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+        <button type="submit" id="modal-submit-btn" class="modal-btn modal-btn-submit">
+          <span id="submit-btn-text">Confirm &amp; Update</span>
+          <span id="submit-btn-spinner" class="btn-spinner" hidden></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <footer>
   <a href="/" class="footer-brand">MIND<span>TECH</span> ARENA<span class="footer-spark">✳</span></a>
