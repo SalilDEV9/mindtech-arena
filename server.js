@@ -7,42 +7,53 @@ const Team = require('./models/Team');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/mindtech_arena';
+const MONGODB_URI = process.env.MONGODB_URI || (process.env.VERCEL ? null : 'mongodb://127.0.0.1:27017/mindtech_arena');
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// MongoDB Connection
-let isDbConnected = false;
+// Reuse one connection and await it before database-backed requests.
+let connectionPromise;
+async function connectDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  if (!MONGODB_URI) throw new Error('MONGODB_URI is not configured');
+  if (!connectionPromise) {
+    connectionPromise = mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 5,
+    }).catch(error => {
+      connectionPromise = null;
+      throw error;
+    });
+  }
+  await connectionPromise;
+}
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    isDbConnected = true;
-    console.log('✅ Connected to MongoDB successfully.');
-  })
-  .catch((err) => {
-    isDbConnected = false;
-    console.error('❌ MongoDB Connection Error:', err.message);
-  });
-
-mongoose.connection.on('disconnected', () => {
-  isDbConnected = false;
-  console.warn('⚠️ MongoDB disconnected.');
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
 });
-
-mongoose.connection.on('connected', () => {
-  isDbConnected = true;
-  console.log('✅ MongoDB connected.');
+app.use('/api/leaderboard', async (req, res, next) => {
+  if (req.method !== 'GET' && !process.env.ADMIN_PASSWORD) {
+    return res.status(503).json({success: false, error: 'Admin access is not configured.'});
+  }
+  try {
+    await connectDatabase();
+    next();
+  } catch {
+    res.status(503).json({success: false, error: 'Leaderboard database is unavailable. Contact the organisers.'});
+  }
 });
 
 // API Routes
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  try { await connectDatabase(); } catch { /* Health exposes configuration status without credentials. */ }
   res.json({
     status: 'ok',
-    database: isDbConnected ? 'connected' : 'disconnected',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    configured: { database: Boolean(MONGODB_URI), admin: Boolean(process.env.ADMIN_PASSWORD) },
     timestamp: new Date().toISOString(),
   });
 });
@@ -114,7 +125,7 @@ app.post('/api/leaderboard/scores', async (req, res) => {
   }
 
   const { password, updates } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD || 'testingPass';
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!password || password !== adminPassword) {
     return res.status(401).json({
@@ -180,7 +191,7 @@ app.post('/api/leaderboard/teams', async (req, res) => {
   }
 
   const { password, teamName, teamLeader, teamId, points } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD || 'testingPass';
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!password || password !== adminPassword) {
     return res.status(401).json({
@@ -248,7 +259,7 @@ async function handleBulkDelete(req, res) {
   }
 
   const { password, teamIds } = req.body;
-  const adminPassword = process.env.ADMIN_PASSWORD || 'testingPass';
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!password || password !== adminPassword) {
     return res.status(401).json({
@@ -296,7 +307,10 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 MindTech Arena server running on http://localhost:${PORT}`);
-});
+// Vercel imports the app; local development starts the port listener.
+module.exports = app;
+if (require.main === module && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`MindTech Arena server running on http://localhost:${PORT}`);
+  });
+}

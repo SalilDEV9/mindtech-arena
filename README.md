@@ -211,3 +211,11 @@ Health check for server status and MongoDB connection state.
 - All administrative actions (`Update Scores`, `Delete Teams`, and `Add Team`) require valid authentication via `ADMIN_PASSWORD`.
 - The `.env` file is excluded from Git tracking via `.gitignore`.
 - Database operations utilize atomic bulk writing (`bulkWrite`), atomic multi-document deletes (`deleteMany`), and indexed queries for maximum reliability under high concurrent traffic.
+
+## Vercel deployment
+
+Deploy the `arshal-work` branch from the repository root with the Express framework preset. `vercel.json` installs the locked dependencies and copies `dist` to `public` for Vercel's CDN. `server.js` exports the Express app for API requests.
+
+In Vercel Settings → Environment Variables, configure `MONGODB_URI` with your MongoDB Atlas connection string and `ADMIN_PASSWORD` with a private admin password for Production. Configure Preview separately if needed. Do not commit those values. Redeploy after setting them.
+
+Verify `/api/health` reports `database: connected`, then open `/leaderboard`. An empty database is valid; add actual event teams through the password-protected Add Team form. The sample seed is optional and is not run during deployment.
