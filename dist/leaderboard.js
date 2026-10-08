@@ -34,6 +34,12 @@ window.matchMedia('(min-width:761px)').addEventListener('change', event => {
 let currentLeaderboardPage = 1;
 const LEADERBOARD_LIMIT = 15;
 
+function getOrdinal(n) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/[&<>"']/g, match => ({
@@ -85,32 +91,42 @@ async function loadLeaderboard(page = 1, shouldScroll = false) {
     // Update metadata stats
     if ($('meta-total-teams')) $('meta-total-teams').textContent = String(data.pagination.totalTeams);
     if ($('meta-top-score') && data.teams.length > 0 && page === 1) {
-      $('meta-top-score').textContent = `${data.teams[0].points} PTS`;
+      $('meta-top-score').textContent = `${data.teams[0].points.toLocaleString()} PTS`;
     }
 
-    // Render table rows
+    // Render table rows matching reference screenshot
     body.innerHTML = data.teams.map(team => {
-      let rankBadge;
-      if (team.rank === 1) {
-        rankBadge = `<span class="rank-badge rank-top-1">01 <span class="spark" aria-hidden="true">✳</span></span>`;
-      } else if (team.rank === 2) {
-        rankBadge = `<span class="rank-badge rank-top-2">02 <span class="spark" aria-hidden="true">★</span></span>`;
-      } else if (team.rank === 3) {
-        rankBadge = `<span class="rank-badge rank-top-3">03 <span class="spark" aria-hidden="true">★</span></span>`;
-      } else {
-        rankBadge = `<span class="rank-badge">${String(team.rank).padStart(2, '0')}</span>`;
-      }
+      let rankShieldClass = 'rank-shield';
+      if (team.rank === 1) rankShieldClass = 'rank-shield rank-shield-1';
+      else if (team.rank === 2) rankShieldClass = 'rank-shield rank-shield-2';
+      else if (team.rank === 3) rankShieldClass = 'rank-shield rank-shield-3';
+
+      const ordinal = getOrdinal(team.rank);
 
       return `<tr>
-        <td class="col-rank">${rankBadge}</td>
-        <td class="col-team">
-          <div class="team-name-cell">
-            <strong>${escapeHtml(team.teamName)}</strong>
-            <small>Leader: ${escapeHtml(team.teamLeader)}</small>
+        <td class="col-rank">
+          <div class="rank-flex">
+            <span class="${rankShieldClass}">${team.rank}</span>
+            <span class="rank-ordinal ${team.rank <= 3 ? 'top-ordinal' : ''}">${ordinal}</span>
           </div>
         </td>
-        <td class="col-id"><span class="team-id-badge">${escapeHtml(team.teamId)}</span></td>
-        <td class="col-points"><strong class="points-val ${team.rank <= 3 ? 'top-pts' : ''}">${team.points}</strong></td>
+        <td class="col-user">
+          <div class="user-cell">
+            <strong class="user-team-name">${escapeHtml(team.teamName)}</strong>
+            <div class="user-meta">
+              <span class="user-leader">${escapeHtml(team.teamLeader)}</span>
+              <span class="user-divider">·</span>
+              <span class="user-id">${escapeHtml(team.teamId)}</span>
+            </div>
+          </div>
+        </td>
+        <td class="col-wagered">
+          <div class="points-flex">
+            <span class="points-icon">★</span>
+            <span class="points-value ${team.rank <= 3 ? 'top-points' : ''}">${team.points.toLocaleString()}</span>
+            <span class="points-unit">PTS</span>
+          </div>
+        </td>
       </tr>`;
     }).join('');
 
