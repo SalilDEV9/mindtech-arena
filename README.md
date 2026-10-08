@@ -220,6 +220,4 @@ In Vercel Settings → Environment Variables, configure `MONGODB_URI` with your 
 
 Verify `/api/health` reports `database: connected`, then open `/leaderboard`. An empty database is valid; add actual event teams through the password-protected Add Team form. The sample seed is optional and is not run during deployment.
 
-## Private leaderboard access
-
-`/leaderboard` and `/leaderboard.html` require the existing `ADMIN_PASSWORD` via `/leaderboard/login`. All `/api/leaderboard` routes also require the signed session cookie. Sessions expire after eight hours; use **Lock leaderboard** to sign out. Cookies are HttpOnly, SameSite=Strict, and Secure on Vercel. Password changes invalidate existing sessions. The public event page stays accessible. Private leaderboard HTML is excluded from Vercel CDN output. Existing write actions also retain their password confirmation.
+Leaderboard viewing is public. Adding teams, updating scores and deleting teams still require the private `ADMIN_PASSWORD`; no login session is needed to view rankings.
