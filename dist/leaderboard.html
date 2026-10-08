@@ -90,6 +90,11 @@
             <span>Update Scores</span>
             <span id="staged-count-badge" class="staged-badge" hidden>0</span>
           </button>
+          <button type="button" id="btn-delete-teams" class="btn-delete-teams" disabled title="Delete selected teams from database">
+            <span class="delete-icon">🗑️</span>
+            <span>Delete Teams</span>
+            <span id="staged-delete-badge" class="staged-badge staged-badge-delete" hidden>0</span>
+          </button>
           <span class="sync-status"><span class="live-pulse-dot"></span> LIVE SYNC</span>
         </div>
       </div>
@@ -276,6 +281,50 @@
         <button type="submit" id="add-team-submit-btn" class="modal-btn modal-btn-submit">
           <span id="add-team-btn-text">Add Team to Leaderboard</span>
           <span id="add-team-spinner" class="btn-spinner" hidden></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal Dialog -->
+<div id="delete-modal" class="lb-modal-backdrop" hidden>
+  <div class="lb-modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+    <div class="lb-modal-header modal-header-danger">
+      <div class="modal-icon-wrap modal-icon-delete">🗑️</div>
+      <div>
+        <h3 id="delete-modal-title">Delete Competing Teams</h3>
+        <p class="modal-sub">Confirm permanent deletion of selected teams from the database.</p>
+      </div>
+    </div>
+
+    <form id="delete-form" class="lb-modal-body">
+      <div class="modal-changes-summary modal-delete-summary" id="modal-delete-summary">
+        <!-- Summary of teams to delete -->
+      </div>
+
+      <div class="form-group">
+        <label for="delete-password-input">ADMIN PASSWORD *</label>
+        <input
+          type="password"
+          id="delete-password-input"
+          class="modal-input"
+          placeholder="Enter admin password to confirm deletion..."
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <div id="delete-error-alert" class="modal-error-alert" hidden>
+        <span class="error-icon">⚠️</span>
+        <span id="delete-error-text">Wrong password. Please try again.</span>
+      </div>
+
+      <div class="lb-modal-actions">
+        <button type="button" id="delete-cancel-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+        <button type="submit" id="delete-submit-btn" class="modal-btn modal-btn-danger">
+          <span id="delete-btn-text">Permanently Delete</span>
+          <span id="delete-spinner" class="btn-spinner" hidden></span>
         </button>
       </div>
     </form>

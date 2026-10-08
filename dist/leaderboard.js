@@ -39,6 +39,10 @@ document.addEventListener('keydown', event => {
     if (addTeamModal && !addTeamModal.hidden) {
       closeAddTeamModal();
     }
+    const deleteModal = $('delete-modal');
+    if (deleteModal && !deleteModal.hidden) {
+      closeDeleteModal();
+    }
   }
 });
 
@@ -51,6 +55,7 @@ let currentLeaderboardPage = 1;
 const LEADERBOARD_LIMIT = 15;
 let currentTeamsList = [];
 const stagedUpdates = new Map(); // teamId -> { teamId, teamName, points, originalPoints }
+const stagedDeletions = new Map(); // teamId -> { teamId, teamName, points }
 const activeEditingTeams = new Set(); // Set of teamId strings currently in edit mode
 
 function getOrdinal(n) {
@@ -81,29 +86,50 @@ function showToast(message, type = 'info') {
 }
 
 function updateStagedUI() {
+  // Update Scores button state
   const btn = $('btn-update-scores');
   const badge = $('staged-count-badge');
   const count = stagedUpdates.size;
 
-  if (!btn || !badge) return;
+  if (btn && badge) {
+    if (count > 0) {
+      btn.disabled = false;
+      btn.classList.add('has-staged');
+      badge.hidden = false;
+      badge.textContent = String(count);
+    } else {
+      btn.disabled = true;
+      btn.classList.remove('has-staged');
+      badge.hidden = true;
+      badge.textContent = '0';
+    }
+  }
 
-  if (count > 0) {
-    btn.disabled = false;
-    btn.classList.add('has-staged');
-    badge.hidden = false;
-    badge.textContent = String(count);
-  } else {
-    btn.disabled = true;
-    btn.classList.remove('has-staged');
-    badge.hidden = true;
-    badge.textContent = '0';
+  // Delete Teams button state
+  const delBtn = $('btn-delete-teams');
+  const delBadge = $('staged-delete-badge');
+  const delCount = stagedDeletions.size;
+
+  if (delBtn && delBadge) {
+    if (delCount > 0) {
+      delBtn.disabled = false;
+      delBtn.classList.add('has-staged-delete');
+      delBadge.hidden = false;
+      delBadge.textContent = String(delCount);
+    } else {
+      delBtn.disabled = true;
+      delBtn.classList.remove('has-staged-delete');
+      delBadge.hidden = true;
+      delBadge.textContent = '0';
+    }
   }
 }
 
 function renderTeamRow(team) {
   const isEditing = activeEditingTeams.has(team.teamId);
-  const isStaged = stagedUpdates.has(team.teamId);
-  const currentPoints = isStaged ? stagedUpdates.get(team.teamId).points : team.points;
+  const isStagedUpdate = stagedUpdates.has(team.teamId);
+  const isStagedDelete = stagedDeletions.has(team.teamId);
+  const currentPoints = isStagedUpdate ? stagedUpdates.get(team.teamId).points : team.points;
 
   let rankShieldClass = 'rank-shield';
   if (team.rank === 1) rankShieldClass = 'rank-shield rank-shield-1';
@@ -140,25 +166,38 @@ function renderTeamRow(team) {
     pointsCellHtml = `
       <div class="points-flex">
         <span class="points-icon">★</span>
-        <span class="points-value ${team.rank <= 3 ? 'top-points' : ''}">${Number(currentPoints).toLocaleString()}</span>
+        <span class="points-value ${team.rank <= 3 ? 'top-points' : ''} ${isStagedDelete ? 'points-deleted' : ''}">${Number(currentPoints).toLocaleString()}</span>
         <span class="points-unit">PTS</span>
-        ${isStaged ? '<span class="staged-pill" title="Staged for database update">Pending</span>' : ''}
-        <button
-          type="button"
-          class="btn-row-action btn-row-edit"
-          data-action="edit"
-          data-team-id="${escapeHtml(team.teamId)}"
-          title="Edit score for ${escapeHtml(team.teamName)}"
-          aria-label="Edit score for ${escapeHtml(team.teamName)}"
-        >
-          ✏️
-        </button>
+        ${isStagedDelete ? '<span class="staged-delete-pill" title="Marked for deletion">Delete Pending</span>' : isStagedUpdate ? '<span class="staged-pill" title="Staged for database update">Pending</span>' : ''}
+        <div class="row-actions-group">
+          <button
+            type="button"
+            class="btn-row-action btn-row-edit"
+            data-action="edit"
+            data-team-id="${escapeHtml(team.teamId)}"
+            title="Edit score for ${escapeHtml(team.teamName)}"
+            aria-label="Edit score for ${escapeHtml(team.teamName)}"
+            ${isStagedDelete ? 'disabled' : ''}
+          >
+            ✏️
+          </button>
+          <button
+            type="button"
+            class="btn-row-action btn-row-delete ${isStagedDelete ? 'btn-delete-active' : ''}"
+            data-action="delete"
+            data-team-id="${escapeHtml(team.teamId)}"
+            title="${isStagedDelete ? 'Undo delete for ' + escapeHtml(team.teamName) : 'Mark ' + escapeHtml(team.teamName) + ' for deletion'}"
+            aria-label="Delete ${escapeHtml(team.teamName)}"
+          >
+            ${isStagedDelete ? '↩️' : '🗑️'}
+          </button>
+        </div>
       </div>
     `;
   }
 
   return `
-    <tr id="row-${escapeHtml(team.teamId)}" class="${isStaged ? 'row-staged' : ''} ${isEditing ? 'row-editing' : ''}">
+    <tr id="row-${escapeHtml(team.teamId)}" class="${isStagedDelete ? 'row-staged-delete' : isStagedUpdate ? 'row-staged' : ''} ${isEditing ? 'row-editing' : ''}">
       <td class="col-rank">
         <div class="rank-flex">
           <span class="${rankShieldClass}">${team.rank}</span>
@@ -166,7 +205,7 @@ function renderTeamRow(team) {
         </div>
       </td>
       <td class="col-user">
-        <div class="user-cell">
+        <div class="user-cell ${isStagedDelete ? 'user-deleted' : ''}">
           <strong class="user-team-name">${escapeHtml(team.teamName)}</strong>
           <div class="user-meta">
             <span class="user-leader">${escapeHtml(team.teamLeader)}</span>
@@ -187,7 +226,7 @@ function renderTableRows() {
   if (!body) return;
   body.innerHTML = currentTeamsList.map(renderTeamRow).join('');
 
-  // Auto-focus any active input
+  // Auto-focus active editing input
   if (activeEditingTeams.size > 0) {
     const firstActiveId = Array.from(activeEditingTeams)[0];
     const input = $(`input-${firstActiveId}`);
@@ -238,6 +277,20 @@ $('leaderboard-body')?.addEventListener('click', event => {
     }
 
     activeEditingTeams.delete(teamId);
+    updateStagedUI();
+    renderTableRows();
+  } else if (action === 'delete') {
+    if (stagedDeletions.has(teamId)) {
+      stagedDeletions.delete(teamId);
+      showToast(`Cancelled deletion of team "${team.teamName}".`, 'info');
+    } else {
+      stagedDeletions.set(teamId, {
+        teamId,
+        teamName: team.teamName,
+        points: team.points
+      });
+      showToast(`"${team.teamName}" marked for deletion. Click "Delete Teams" in top bar to confirm.`, 'info');
+    }
     updateStagedUI();
     renderTableRows();
   }
@@ -373,7 +426,7 @@ function openPasswordModal() {
   `).join('');
 
   summaryEl.innerHTML = `
-    <div class="summary-title">Pending Changes (${stagedUpdates.size} ${stagedUpdates.size === 1 ? 'team' : 'teams'}):</div>
+    <div class="summary-title">Pending Score Updates (${stagedUpdates.size} ${stagedUpdates.size === 1 ? 'team' : 'teams'}):</div>
     <div class="summary-list">${itemsHtml}</div>
   `;
 
@@ -470,6 +523,126 @@ $('password-form')?.addEventListener('submit', async event => {
   }
 });
 
+// Delete Confirmation Modal Handling
+function openDeleteModal() {
+  if (stagedDeletions.size === 0) {
+    showToast('No teams selected for deletion. Click 🗑️ on any row to mark for deletion.', 'info');
+    return;
+  }
+
+  const modal = $('delete-modal');
+  const summaryEl = $('modal-delete-summary');
+  const pwdInput = $('delete-password-input');
+  const errAlert = $('delete-error-alert');
+
+  if (!modal || !summaryEl) return;
+
+  const itemsHtml = Array.from(stagedDeletions.values()).map(d => `
+    <div class="summary-item summary-delete-item">
+      <div class="summary-team">
+        <strong>${escapeHtml(d.teamName)}</strong>
+        <span class="summary-id">${escapeHtml(d.teamId)}</span>
+      </div>
+      <div class="summary-score-change">
+        <strong class="score-delete-tag">${d.points} PTS</strong>
+      </div>
+    </div>
+  `).join('');
+
+  summaryEl.innerHTML = `
+    <div class="summary-title summary-delete-title">⚠️ Teams to be Permanently Deleted (${stagedDeletions.size}):</div>
+    <div class="summary-list">${itemsHtml}</div>
+  `;
+
+  if (errAlert) errAlert.hidden = true;
+  if (pwdInput) pwdInput.value = '';
+
+  modal.hidden = false;
+  setTimeout(() => {
+    if (pwdInput) pwdInput.focus();
+  }, 50);
+}
+
+function closeDeleteModal() {
+  const modal = $('delete-modal');
+  if (modal) modal.hidden = true;
+  const errAlert = $('delete-error-alert');
+  if (errAlert) errAlert.hidden = true;
+}
+
+$('btn-delete-teams')?.addEventListener('click', openDeleteModal);
+$('delete-cancel-btn')?.addEventListener('click', closeDeleteModal);
+
+$('delete-modal')?.addEventListener('click', event => {
+  if (event.target === $('delete-modal')) {
+    closeDeleteModal();
+  }
+});
+
+// Bulk Delete Form Submit
+$('delete-form')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const pwdInput = $('delete-password-input');
+  const errAlert = $('delete-error-alert');
+  const errText = $('delete-error-text');
+  const submitBtn = $('delete-submit-btn');
+  const btnText = $('delete-btn-text');
+  const spinner = $('delete-spinner');
+
+  if (!pwdInput || stagedDeletions.size === 0) return;
+
+  const password = pwdInput.value.trim();
+  if (!password) {
+    pwdInput.focus();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  if (btnText) btnText.textContent = 'Deleting...';
+  if (spinner) spinner.hidden = false;
+  if (errAlert) errAlert.hidden = true;
+
+  const teamIds = Array.from(stagedDeletions.keys());
+
+  try {
+    const res = await fetch('/api/leaderboard/teams/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        password,
+        teamIds
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to delete teams. Check password.');
+    }
+
+    closeDeleteModal();
+    const count = stagedDeletions.size;
+    stagedDeletions.clear();
+    updateStagedUI();
+    showToast(`✓ Successfully deleted ${count} ${count === 1 ? 'team' : 'teams'} from MongoDB!`, 'success');
+
+    await loadLeaderboard(currentLeaderboardPage, false);
+  } catch (err) {
+    if (errAlert && errText) {
+      errAlert.hidden = false;
+      errText.textContent = err.message || 'Incorrect admin password. Please try again.';
+      pwdInput.classList.add('input-shake');
+      setTimeout(() => pwdInput.classList.remove('input-shake'), 600);
+      pwdInput.focus();
+      pwdInput.select();
+    }
+  } finally {
+    submitBtn.disabled = false;
+    if (btnText) btnText.textContent = 'Permanently Delete';
+    if (spinner) spinner.hidden = true;
+  }
+});
+
 // Add Team Modal Handling
 function openAddTeamModal() {
   const modal = $('add-team-modal');
@@ -548,7 +721,6 @@ $('add-team-form')?.addEventListener('submit', async event => {
     return;
   }
 
-  // Set loading state
   submitBtn.disabled = true;
   if (btnText) btnText.textContent = 'Registering Team...';
   if (spinner) spinner.hidden = false;
@@ -573,11 +745,9 @@ $('add-team-form')?.addEventListener('submit', async event => {
       throw new Error(data.error || 'Failed to add team. Check password or team ID.');
     }
 
-    // Success!
     closeAddTeamModal();
     showToast(`✓ Team "${teamName}" (${teamId}) registered with ${points} PTS!`, 'success');
 
-    // Reload page 1 to display the newly added team in standings
     await loadLeaderboard(1, false);
   } catch (err) {
     if (errAlert && errText) {

@@ -238,6 +238,54 @@ app.post('/api/leaderboard/teams', async (req, res) => {
   }
 });
 
+// DELETE & POST /api/leaderboard/teams/delete - Password-protected bulk team deletion
+async function handleBulkDelete(req, res) {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      error: 'Database connection not available.',
+    });
+  }
+
+  const { password, teamIds } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD || 'testingPass';
+
+  if (!password || password !== adminPassword) {
+    return res.status(401).json({
+      success: false,
+      error: 'Incorrect admin password.',
+    });
+  }
+
+  if (!Array.isArray(teamIds) || teamIds.length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'No team IDs provided for deletion.',
+    });
+  }
+
+  const sanitizedIds = teamIds.map((id) => String(id).trim().toUpperCase()).filter(Boolean);
+
+  try {
+    const result = await Team.deleteMany({ teamId: { $in: sanitizedIds } });
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} team(s).`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error('Error deleting teams:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete teams from database.',
+    });
+  }
+}
+
+app.delete('/api/leaderboard/teams', handleBulkDelete);
+app.post('/api/leaderboard/teams/delete', handleBulkDelete);
+
 // Route for Leaderboard page
 app.get('/leaderboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'leaderboard.html'));

@@ -16,6 +16,9 @@ A high-performance, responsive event website and real-time MongoDB-backed Leader
   - `✏️` Edit action on each team row with `✓ Done` and `✕ Cancel` (keyboard-accessible via `Enter` / `Escape`).
   - Multi-team staging queue allowing administrators to edit several scores before committing.
   - `⚡ Update Scores (N)` bulk commit action protected by admin password authentication.
+- **Bulk Team Deletion (`🗑️ Delete Teams`)**:
+  - Inline row delete button (`🗑️` / `↩️` toggle) marking rows with strike-through and pending status.
+  - Top bar `🗑️ Delete Teams (N)` bulk commit modal protected by admin password authentication.
 - **Team Registration Modal (`➕ Add Team`)**:
   - Password-protected registration dialog to add new teams with custom ID, leader name, and initial score.
   - Duplicate team ID validation.
@@ -171,6 +174,25 @@ Password-protected registration of a new team.
   }
   ```
 
+### `DELETE /api/leaderboard/teams` (or `POST /api/leaderboard/teams/delete`)
+Password-protected bulk deletion of teams by ID.
+- **Headers**: `Content-Type: application/json`
+- **Body**:
+  ```json
+  {
+    "password": "testingPass",
+    "teamIds": ["MTA-101", "MTA-102"]
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "message": "Successfully deleted 2 team(s).",
+    "deletedCount": 2
+  }
+  ```
+
 ### `GET /api/health`
 Health check for server status and MongoDB connection state.
 - **Response**:
@@ -186,6 +208,6 @@ Health check for server status and MongoDB connection state.
 
 ## 🔒 Security & Admin Notes
 
-- All administrative actions (`Update Scores` and `Add Team`) require valid authentication via `ADMIN_PASSWORD`.
+- All administrative actions (`Update Scores`, `Delete Teams`, and `Add Team`) require valid authentication via `ADMIN_PASSWORD`.
 - The `.env` file is excluded from Git tracking via `.gitignore`.
-- Database operations utilize atomic bulk writing (`bulkWrite`) and indexed queries for maximum reliability under high concurrent traffic.
+- Database operations utilize atomic bulk writing (`bulkWrite`), atomic multi-document deletes (`deleteMany`), and indexed queries for maximum reliability under high concurrent traffic.
