@@ -35,6 +35,10 @@ document.addEventListener('keydown', event => {
     if (modal && !modal.hidden) {
       closePasswordModal();
     }
+    const addTeamModal = $('add-team-modal');
+    if (addTeamModal && !addTeamModal.hidden) {
+      closeAddTeamModal();
+    }
   }
 });
 
@@ -340,7 +344,7 @@ async function loadLeaderboard(page = 1, shouldScroll = false) {
   }
 }
 
-// Password Modal Handling
+// Password Modal for Bulk Score Update
 function openPasswordModal() {
   if (stagedUpdates.size === 0) {
     showToast('No score changes have been staged. Click ✏️ on any row to edit first.', 'info');
@@ -354,7 +358,6 @@ function openPasswordModal() {
 
   if (!modal || !summaryEl) return;
 
-  // Render pending updates summary
   const itemsHtml = Array.from(stagedUpdates.values()).map(u => `
     <div class="summary-item">
       <div class="summary-team">
@@ -390,7 +393,6 @@ function closePasswordModal() {
   if (errAlert) errAlert.hidden = true;
 }
 
-// Modal Event Listeners
 $('btn-update-scores')?.addEventListener('click', openPasswordModal);
 $('modal-cancel-btn')?.addEventListener('click', closePasswordModal);
 
@@ -400,7 +402,7 @@ $('password-modal')?.addEventListener('click', event => {
   }
 });
 
-// Password Form Submit
+// Bulk Score Update Submit
 $('password-form')?.addEventListener('submit', async event => {
   event.preventDefault();
   const pwdInput = $('admin-password-input');
@@ -418,7 +420,6 @@ $('password-form')?.addEventListener('submit', async event => {
     return;
   }
 
-  // Set loading state
   submitBtn.disabled = true;
   if (btnText) btnText.textContent = 'Verifying & Updating...';
   if (spinner) spinner.hidden = false;
@@ -445,7 +446,6 @@ $('password-form')?.addEventListener('submit', async event => {
       throw new Error(data.error || 'Failed to update scores. Check password.');
     }
 
-    // Success!
     closePasswordModal();
     const updatedCount = stagedUpdates.size;
     stagedUpdates.clear();
@@ -453,7 +453,6 @@ $('password-form')?.addEventListener('submit', async event => {
     updateStagedUI();
     showToast(`✓ Successfully updated ${updatedCount} team ${updatedCount === 1 ? 'score' : 'scores'} in MongoDB!`, 'success');
 
-    // Refresh Leaderboard from server
     await loadLeaderboard(currentLeaderboardPage, false);
   } catch (err) {
     if (errAlert && errText) {
@@ -467,6 +466,131 @@ $('password-form')?.addEventListener('submit', async event => {
   } finally {
     submitBtn.disabled = false;
     if (btnText) btnText.textContent = 'Confirm & Update';
+    if (spinner) spinner.hidden = true;
+  }
+});
+
+// Add Team Modal Handling
+function openAddTeamModal() {
+  const modal = $('add-team-modal');
+  const errAlert = $('add-team-error-alert');
+  const form = $('add-team-form');
+
+  if (!modal || !form) return;
+
+  form.reset();
+  if (errAlert) errAlert.hidden = true;
+  modal.hidden = false;
+
+  setTimeout(() => {
+    const nameInput = $('new-team-name');
+    if (nameInput) nameInput.focus();
+  }, 50);
+}
+
+function closeAddTeamModal() {
+  const modal = $('add-team-modal');
+  if (modal) modal.hidden = true;
+  const errAlert = $('add-team-error-alert');
+  if (errAlert) errAlert.hidden = true;
+}
+
+$('btn-add-team')?.addEventListener('click', openAddTeamModal);
+$('add-team-cancel-btn')?.addEventListener('click', closeAddTeamModal);
+
+$('add-team-modal')?.addEventListener('click', event => {
+  if (event.target === $('add-team-modal')) {
+    closeAddTeamModal();
+  }
+});
+
+// Add Team Form Submit
+$('add-team-form')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const nameInput = $('new-team-name');
+  const leaderInput = $('new-team-leader');
+  const idInput = $('new-team-id');
+  const pointsInput = $('new-team-points');
+  const pwdInput = $('add-team-password');
+
+  const errAlert = $('add-team-error-alert');
+  const errText = $('add-team-error-text');
+  const submitBtn = $('add-team-submit-btn');
+  const btnText = $('add-team-btn-text');
+  const spinner = $('add-team-spinner');
+
+  if (!nameInput || !leaderInput || !idInput || !pointsInput || !pwdInput) return;
+
+  const teamName = nameInput.value.trim();
+  const teamLeader = leaderInput.value.trim();
+  const teamId = idInput.value.trim().toUpperCase();
+  const points = parseInt(pointsInput.value, 10);
+  const password = pwdInput.value.trim();
+
+  if (!teamName || !teamLeader || !teamId) {
+    if (errAlert && errText) {
+      errAlert.hidden = false;
+      errText.textContent = 'Please fill out all required team fields.';
+    }
+    return;
+  }
+
+  if (isNaN(points) || points < 0) {
+    if (errAlert && errText) {
+      errAlert.hidden = false;
+      errText.textContent = 'Score must be a non-negative number.';
+    }
+    return;
+  }
+
+  if (!password) {
+    pwdInput.focus();
+    return;
+  }
+
+  // Set loading state
+  submitBtn.disabled = true;
+  if (btnText) btnText.textContent = 'Registering Team...';
+  if (spinner) spinner.hidden = false;
+  if (errAlert) errAlert.hidden = true;
+
+  try {
+    const res = await fetch('/api/leaderboard/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        password,
+        teamName,
+        teamLeader,
+        teamId,
+        points,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to add team. Check password or team ID.');
+    }
+
+    // Success!
+    closeAddTeamModal();
+    showToast(`✓ Team "${teamName}" (${teamId}) registered with ${points} PTS!`, 'success');
+
+    // Reload page 1 to display the newly added team in standings
+    await loadLeaderboard(1, false);
+  } catch (err) {
+    if (errAlert && errText) {
+      errAlert.hidden = false;
+      errText.textContent = err.message || 'Failed to add team. Please check admin password.';
+      pwdInput.classList.add('input-shake');
+      setTimeout(() => pwdInput.classList.remove('input-shake'), 600);
+      pwdInput.focus();
+      pwdInput.select();
+    }
+  } finally {
+    submitBtn.disabled = false;
+    if (btnText) btnText.textContent = 'Add Team to Leaderboard';
     if (spinner) spinner.hidden = true;
   }
 });

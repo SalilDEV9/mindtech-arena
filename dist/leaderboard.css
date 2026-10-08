@@ -220,10 +220,39 @@ body.page-leaderboard .active-nav-link {
 .lb-topbar-right {
   display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-/* Update Scores Action Button in Topbar */
+/* Action Buttons in Topbar */
+.btn-action-add {
+  background: #151f30;
+  border: 1px solid #293a52;
+  color: #93c5fd;
+  padding: 7px 15px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .25s ease;
+  cursor: pointer;
+}
+
+.btn-action-add:hover {
+  background: #1e2c45;
+  border-color: #3b82f6;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+}
+
+.action-icon {
+  font-size: 11px;
+}
+
 .btn-update-scores {
   background: #1e293b;
   border: 1px solid #334155;
@@ -669,6 +698,11 @@ body.page-leaderboard .active-nav-link {
   flex-shrink: 0;
 }
 
+.modal-icon-wrap.modal-icon-team {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
 .lb-modal-header h3 {
   font-family: var(--display, 'Barlow Condensed', sans-serif);
   font-size: 22px;
@@ -688,7 +722,20 @@ body.page-leaderboard .active-nav-link {
   padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+}
+
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 500px) {
+  .form-row-2col {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .modal-changes-summary {

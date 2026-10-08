@@ -81,12 +81,16 @@
           <span class="topbar-sub">SORTED IN DESCENDING ORDER OF POINTS</span>
         </div>
         <div class="lb-topbar-right">
+          <button type="button" id="btn-add-team" class="btn-action-add" title="Register a new team to the leaderboard">
+            <span class="action-icon">➕</span>
+            <span>Add Team</span>
+          </button>
           <button type="button" id="btn-update-scores" class="btn-update-scores" disabled title="Edit scores on rows and click here to save">
             <span class="update-icon">⚡</span>
             <span>Update Scores</span>
             <span id="staged-count-badge" class="staged-badge" hidden>0</span>
           </button>
-          <span class="sync-status"><span class="live-pulse-dot"></span> LIVE FROM DATABASE</span>
+          <span class="sync-status"><span class="live-pulse-dot"></span> LIVE SYNC</span>
         </div>
       </div>
 
@@ -161,7 +165,7 @@
       </div>
 
       <div class="form-group">
-        <label for="admin-password-input">ADMIN PASSWORD</label>
+        <label for="admin-password-input">ADMIN PASSWORD *</label>
         <input
           type="password"
           id="admin-password-input"
@@ -182,6 +186,96 @@
         <button type="submit" id="modal-submit-btn" class="modal-btn modal-btn-submit">
           <span id="submit-btn-text">Confirm &amp; Update</span>
           <span id="submit-btn-spinner" class="btn-spinner" hidden></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Team Modal Dialog -->
+<div id="add-team-modal" class="lb-modal-backdrop" hidden>
+  <div class="lb-modal-card" role="dialog" aria-modal="true" aria-labelledby="add-team-title">
+    <div class="lb-modal-header">
+      <div class="modal-icon-wrap modal-icon-team">👥</div>
+      <div>
+        <h3 id="add-team-title">Register New Team</h3>
+        <p class="modal-sub">Enter team details, initial points, and admin password to add to live standings.</p>
+      </div>
+    </div>
+
+    <form id="add-team-form" class="lb-modal-body">
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="new-team-name">TEAM NAME *</label>
+          <input
+            type="text"
+            id="new-team-name"
+            class="modal-input"
+            placeholder="e.g. Apex Innovators"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="new-team-leader">TEAM LEADER *</label>
+          <input
+            type="text"
+            id="new-team-leader"
+            class="modal-input"
+            placeholder="e.g. Vikram Malhotra"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row-2col">
+        <div class="form-group">
+          <label for="new-team-id">TEAM ID *</label>
+          <input
+            type="text"
+            id="new-team-id"
+            class="modal-input"
+            placeholder="e.g. MTA-146"
+            style="text-transform: uppercase;"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="new-team-points">INITIAL SCORE (PTS) *</label>
+          <input
+            type="number"
+            id="new-team-points"
+            class="modal-input"
+            placeholder="0"
+            min="0"
+            max="100000"
+            value="0"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="add-team-password">ADMIN PASSWORD *</label>
+        <input
+          type="password"
+          id="add-team-password"
+          class="modal-input"
+          placeholder="Enter admin password..."
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <div id="add-team-error-alert" class="modal-error-alert" hidden>
+        <span class="error-icon">⚠️</span>
+        <span id="add-team-error-text">Wrong password. Please try again.</span>
+      </div>
+
+      <div class="lb-modal-actions">
+        <button type="button" id="add-team-cancel-btn" class="modal-btn modal-btn-cancel">Cancel</button>
+        <button type="submit" id="add-team-submit-btn" class="modal-btn modal-btn-submit">
+          <span id="add-team-btn-text">Add Team to Leaderboard</span>
+          <span id="add-team-spinner" class="btn-spinner" hidden></span>
         </button>
       </div>
     </form>

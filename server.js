@@ -170,6 +170,74 @@ app.post('/api/leaderboard/scores', async (req, res) => {
   }
 });
 
+// POST /api/leaderboard/teams - Password-protected new team creation
+app.post('/api/leaderboard/teams', async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      error: 'Database connection not available.',
+    });
+  }
+
+  const { password, teamName, teamLeader, teamId, points } = req.body;
+  const adminPassword = process.env.ADMIN_PASSWORD || 'testingPass';
+
+  if (!password || password !== adminPassword) {
+    return res.status(401).json({
+      success: false,
+      error: 'Incorrect admin password.',
+    });
+  }
+
+  const trimmedName = (teamName || '').trim();
+  const trimmedLeader = (teamLeader || '').trim();
+  const trimmedId = (teamId || '').trim().toUpperCase();
+  const parsedPoints = Number(points !== undefined && points !== null && points !== '' ? points : 0);
+
+  if (!trimmedName || !trimmedLeader || !trimmedId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Team Name, Team Leader, and Team ID are all required.',
+    });
+  }
+
+  if (isNaN(parsedPoints) || parsedPoints < 0) {
+    return res.status(400).json({
+      success: false,
+      error: 'Score must be a non-negative number.',
+    });
+  }
+
+  try {
+    const existing = await Team.findOne({ teamId: trimmedId });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        error: `A team with ID "${trimmedId}" already exists (${existing.teamName}).`,
+      });
+    }
+
+    const newTeam = await Team.create({
+      teamName: trimmedName,
+      teamLeader: trimmedLeader,
+      teamId: trimmedId,
+      points: Math.round(parsedPoints),
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Team "${newTeam.teamName}" added successfully.`,
+      data: newTeam,
+    });
+  } catch (error) {
+    console.error('Error adding team:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add team to database.',
+    });
+  }
+});
+
 // Route for Leaderboard page
 app.get('/leaderboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'leaderboard.html'));
