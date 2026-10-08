@@ -12,7 +12,28 @@ const MONGODB_URI = process.env.MONGODB_URI || (process.env.VERCEL ? null : 'mon
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'dist')));
+// Always serve current event pages and configuration after a deployment.
+// Vercel gives packaged files fixed mtimes, so same-size edits can reuse ETags.
+app.use((req, res, next) => {
+  const eventPage = req.path === '/' || req.path === '/index.html' ||
+    req.path === '/event-config.js' ||
+    (!path.extname(req.path) && !req.path.startsWith('/api'));
+  if (eventPage) {
+    res.set('Cache-Control', 'no-store');
+    delete req.headers['if-none-match'];
+    delete req.headers['if-modified-since'];
+  }
+  next();
+});
+app.use(express.static(path.join(__dirname, 'dist'), {
+  etag: false,
+  lastModified: false,
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html') || filePath.endsWith('event-config.js')) {
+      res.set('Cache-Control', 'no-store');
+    }
+  },
+}));
 
 // Reuse one connection and await it before database-backed requests.
 let connectionPromise;
