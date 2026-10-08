@@ -1,19 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111110"><meta name="description" content="Live Leaderboard for MindTech Arena by MindQuest, IIIT Kottayam. Real-time scores and standings of competing teams.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111110">
+<meta name="description" content="Official Live Leaderboard for MindTech Arena by MindQuest, IIIT Kottayam. Real-time scores and standings of competing teams.">
 <title>Leaderboard — MindTech Arena</title>
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/fonts.css">
-<link rel="stylesheet" href="style.css">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/fonts.css">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body class="page-leaderboard">
 <a class="skip" href="#leaderboard-content">Skip to leaderboard</a>
 
 <header class="header">
   <a href="/" class="brand" aria-label="MindTech Arena home">
-    <img class="official-logo" src="assets/mindquest-logo.jpg" width="60" height="60" alt="MindQuest logo">
+    <img class="official-logo" src="/assets/mindquest-logo.jpg" width="60" height="60" alt="MindQuest logo">
     <span>MINDQUEST<span class="brand-small">PRESENTS MINDTECH ARENA</span></span>
   </a>
   <nav aria-label="Main navigation">
@@ -23,7 +25,6 @@
     <a href="/leaderboard" class="active-nav-link" aria-current="page">Leaderboard</a>
     <a href="/#faq">FAQs</a>
   </nav>
-  <a class="nav-cta" href="https://makemypass.com/event/mindtech-arena" target="_blank" rel="noopener noreferrer">Join the arena <span>↗</span></a>
   <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-nav">
     <span></span><span></span>
   </button>
@@ -35,49 +36,58 @@
   <a href="/#details">Event details</a>
   <a href="/leaderboard" class="active-nav-link" aria-current="page">Leaderboard ↗</a>
   <a href="/#faq">FAQs</a>
-  <a href="https://makemypass.com/event/mindtech-arena" target="_blank" rel="noopener noreferrer">Join the arena ↗</a>
 </div>
 
-<main id="leaderboard-content">
-  <section class="leaderboard-hero">
-    <div class="leaderboard-hero-inner">
-      <div class="hero-rule">
-        <span><i class="status-dot"></i> MINDQUEST × IIIT KOTTAYAM</span>
-        <span>LIVE COMPETITION STANDINGS</span>
+<main id="leaderboard-content" class="lb-main-container">
+  <!-- Hero Section -->
+  <section class="lb-hero-section">
+    <div class="lb-top-bar">
+      <span><i class="status-dot"></i> MINDQUEST × IIIT KOTTAYAM</span>
+      <span>OFFICIAL LIVE ARENA STANDINGS</span>
+    </div>
+    
+    <div class="lb-header-block">
+      <div class="lb-header-text">
+        <div class="eyebrow">REAL-TIME COMPETITION SCORES</div>
+        <h1 class="lb-title"><span>ARENA</span><span class="red-text">LEADERBOARD<span class="title-spark" aria-hidden="true">✳</span></span></h1>
+        <p class="lb-subtitle">Live scores, rankings, and performance points of all participating teams across all three rounds of MindTech Arena.</p>
       </div>
-      
-      <div class="leaderboard-title-row">
-        <div>
-          <div class="eyebrow">OFFICIAL LIVE STANDINGS</div>
-          <h1><span>ARENA</span><span class="red-text">LEADERBOARD<span class="title-spark" aria-hidden="true">✳</span></span></h1>
-          <p>Real-time scores, team rankings, and points table across all three rounds of MindTech Arena.</p>
+
+      <!-- Quick Stats Grid -->
+      <div class="lb-stats-grid">
+        <div class="lb-stat-box">
+          <span class="tiny">TEAMS COMPETING</span>
+          <strong id="meta-total-teams">—</strong>
         </div>
-        <div class="leaderboard-meta">
-          <div>
-            <span class="tiny">TEAMS COMPETING</span>
-            <strong id="meta-total-teams">—</strong>
-          </div>
-          <div>
-            <span class="tiny">TOP SCORE</span>
-            <strong id="meta-top-score" class="red-text">—</strong>
-          </div>
-          <div>
-            <span class="tiny">STATUS</span>
-            <strong class="live-tag"><i class="status-dot"></i> LIVE</strong>
-          </div>
+        <div class="lb-stat-box highlight-box">
+          <span class="tiny">TOP SCORE</span>
+          <strong id="meta-top-score" class="red-text">—</strong>
+        </div>
+        <div class="lb-stat-box">
+          <span class="tiny">STATUS</span>
+          <strong class="live-indicator"><i class="status-dot"></i> LIVE SYNC</strong>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="leaderboard-page-section">
-    <div class="leaderboard-card">
+  <!-- Leaderboard Table Section -->
+  <section class="lb-table-section">
+    <div class="lb-card">
+      <div class="lb-card-header">
+        <div class="lb-card-heading">
+          <h3>OFFICIAL POINTS TABLE</h3>
+          <span class="tiny">SORTED BY HIGHEST POINTS</span>
+        </div>
+        <span id="lb-sync-time" class="tiny live-sync-text">● Live from MongoDB</span>
+      </div>
+
       <div class="leaderboard-table-wrap">
         <table class="leaderboard-table" id="leaderboard-table">
           <thead>
             <tr>
               <th class="col-rank"># RANK</th>
-              <th class="col-team">TEAM &amp; LEADER</th>
+              <th class="col-team">TEAM &amp; TEAM LEADER</th>
               <th class="col-id">TEAM ID</th>
               <th class="col-points">POINTS</th>
             </tr>
@@ -88,22 +98,26 @@
         </table>
       </div>
 
+      <!-- Loading State -->
       <div id="leaderboard-loader" class="leaderboard-state" hidden>
         <div class="spinner"></div>
         <p>Fetching arena standings from database...</p>
       </div>
 
+      <!-- Error State -->
       <div id="leaderboard-error" class="leaderboard-state" hidden>
         <span class="state-icon">⚠️</span>
         <p id="leaderboard-error-msg">Connecting to leaderboard database...</p>
         <button type="button" class="retry-btn" id="leaderboard-retry">Retry Connection ↗</button>
       </div>
 
+      <!-- Empty State -->
       <div id="leaderboard-empty" class="leaderboard-state" hidden>
         <span class="state-icon">📊</span>
         <p>No team records found yet. Points will appear once rounds commence.</p>
       </div>
 
+      <!-- Pagination Bar -->
       <div class="leaderboard-pagination" id="leaderboard-pagination">
         <div class="pagination-info" id="pagination-info">Showing teams —</div>
         <div class="pagination-actions">
@@ -114,11 +128,9 @@
       </div>
     </div>
 
-    <div class="leaderboard-footer-actions">
-      <a href="/" class="text-link">← Return to Arena Overview</a>
-      <a class="button primary" href="https://makemypass.com/event/mindtech-arena" target="_blank" rel="noopener noreferrer">
-        Register on MakeMyPass <span>↗</span>
-      </a>
+    <!-- Navigation Link Back to Home -->
+    <div class="lb-bottom-nav">
+      <a href="/" class="button-outline"><span>←</span> Return to Arena Overview</a>
     </div>
   </section>
 </main>
@@ -135,6 +147,6 @@
 
 <div id="toast" role="status" class="toast"></div>
 
-<script src="leaderboard.js"></script>
+<script src="/leaderboard.js"></script>
 </body>
 </html>
