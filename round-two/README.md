@@ -1,6 +1,8 @@
-# Idea Forge — isolated Round 2
+# Idea Forge — Round Ideathon
 
-Independent Express + MongoDB application for MindTech Arena. Deploy **this folder** as a separate Vercel project, with production branch `round-two`. The existing root application is unchanged and must not be redeployed for this module.
+Independent Express + MongoDB application for MindTech Arena. Deploy **this folder** as a separate Vercel project, with production branch `round-ideathon`. The existing root application is unchanged and must not be redeployed for this module.
+
+The separate `round-2` branch contains the other Round 2 upload. This Ideathon implementation lives on `round-ideathon`; keep its deployment separate. The source folder remains `round-two` for stable paths and deployment configuration.
 
 ## Screens
 

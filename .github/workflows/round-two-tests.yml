@@ -1,7 +1,7 @@
-name: Round Two reliability tests
+name: Ideathon reliability tests
 on:
   push:
-    branches: [round-two]
+    branches: [round-ideathon]
     paths: ['round-two/**', '.github/workflows/round-two-tests.yml']
   pull_request:
     paths: ['round-two/**', '.github/workflows/round-two-tests.yml']
