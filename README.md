@@ -42,7 +42,7 @@
 - **Round 1 (Visual Decoding)**, **Round 2 (Spot the Errors)**, and **Round 3 (Buzzer Blitz)** all atomically update (`$inc`) this **exact same single score field**.
 
 ### 3. Continuous Global Round Timers
-- **Round 1 (Visual Decoding)**: Exactly **30 Minutes (`30:00`)** total countdown for all 15 questions.
+- **Round 1 (Visual Decoding)**: Exactly **20 Minutes (`20:00`)** total countdown for all 15 questions.
 - **Round 2 (Spot The Errors)**: Exactly **20 Minutes (`20:00`)** total countdown for all 16 bug hunting challenges.
 - Timers run continuously in the cyber HUD and do not reset between questions, testing time management under pressure.
 
@@ -65,7 +65,7 @@
 ```
    ┌─────────────────────────────────────────────────────────────┐
    │                  STAGE 1: VISUAL DECODING                   │
-   │  15 Structured Questions • 30-Minute Global Timer           │
+   │  15 Structured Questions • 20-Minute Global Timer           │
    │  Logic deduction, pointer tracing, recursion, bitwise,      │
    │  and syntax behavior. (+100 Base PTS + Speed Bonus)         │
    └──────────────────────────────┬──────────────────────────────┘
@@ -165,8 +165,8 @@ Visit:
 - Click **`ENTER ARENA ▶`**:
   - If the Admin has not yet started the tournament, a security banner will inform you that the quiz is locked. Stand by on this page — the arena will automatically unlock the second the Admin begins the tournament!
 
-#### 2. Stage 1: Visual Decoding (15 Questions • 30:00 Timer)
-- **Time Limit**: A global countdown of **30 Minutes (`30:00`)** starts the instant Round 1 begins. The timer ticks continuously across all 15 questions without resetting.
+#### 2. Stage 1: Visual Decoding (15 Questions • 20:00 Timer)
+- **Time Limit**: A global countdown of **20 Minutes (`20:00`)** starts the instant Round 1 begins. The timer ticks continuously across all 15 questions without resetting.
 - **Questions**: Analytical deduction, pointer tracing, recursive function outcomes, bitwise shifts, and Python closures.
 - **Controls**: Click the options (A, B, C, D) or press keyboard keys `[1]`, `[2]`, `[3]`, `[4]`.
 - **Armory Perks**:

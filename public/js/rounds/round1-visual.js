@@ -30,8 +30,8 @@ class Round1Visual {
     this.currentIndex = 0;
     this.attachKeyListeners();
 
-    // Global 30-Minute Countdown Timer for Round 1 (1800s)
-    this.totalRoundSeconds = 30 * 60;
+    // Global 20-Minute Countdown Timer for Round 1 (1200s)
+    this.totalRoundSeconds = 20 * 60;
     this.roundSecondsRemaining = this.totalRoundSeconds;
     this.startGlobalTimer();
 
@@ -136,7 +136,7 @@ class Round1Visual {
   handleTimeExpired() {
     this.stopTimer();
     if (window.soundEngine) window.soundEngine.playError();
-    alert("TIME EXPIRED: The 30-minute time limit for Round 1 has concluded. Advancing to Round 2.");
+    alert("TIME EXPIRED: The 20-minute time limit for Round 1 has concluded. Advancing to Round 2.");
     this.finishRound();
   }
 
