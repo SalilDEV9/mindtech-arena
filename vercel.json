@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "express",
+  "buildCommand": "node --check server.js && node --check backend-mongoose-server.js",
+  "installCommand": "npm ci",
+  "regions": [
+    "bom1"
+  ]
+}

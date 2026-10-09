@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18" fill="none">
+  <!-- Small Red & Black Precision Text I-Beam -->
+  <path d="M3 1 L11 1 M7 1 L7 17 M3 17 L11 17" stroke="#ff003c" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="7" y1="3" x2="7" y2="15" stroke="#050507" stroke-width="0.8"/>
+</svg>

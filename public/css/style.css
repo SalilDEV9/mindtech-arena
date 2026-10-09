@@ -1,0 +1,450 @@
+/**
+ * MINDMIND Cyber Arena - Neon Black & Red Design System
+ */
+
+:root {
+  --bg-darkest: #050507;
+  --bg-primary: #09090d;
+  --bg-surface: #101017;
+  --bg-card: #151520;
+  --bg-card-hover: #1c1c2b;
+  
+  --border-subtle: #24141c;
+  --border-active: #ff003c;
+  --border-glow: rgba(255, 0, 60, 0.5);
+
+  --neon-red: #ff003c;
+  --neon-red-bright: #ff2a5f;
+  --neon-red-deep: #b3002a;
+  --neon-red-alpha10: rgba(255, 0, 60, 0.1);
+  --neon-red-alpha20: rgba(255, 0, 60, 0.2);
+  --neon-red-alpha40: rgba(255, 0, 60, 0.4);
+
+  --neon-cyan: #ffffff;
+  --neon-green: #ffffff;
+  --neon-amber: #ff2a5f;
+
+  --text-main: #f0f0f5;
+  --text-dim: #9595a8;
+  --text-muted: #5e5e73;
+
+  --font-display: 'Syne', 'Orbitron', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'Space Grotesk', -apple-system, sans-serif;
+
+  --glow-box: 0 0 15px rgba(255, 0, 60, 0.4), inset 0 0 10px rgba(255, 0, 60, 0.15);
+  --glow-text: 0 0 8px rgba(255, 0, 60, 0.8), 0 0 20px rgba(255, 0, 60, 0.4);
+
+  /* Custom Red & Black Precision Cursors (Small / Compact) */
+  --cursor-default: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2218%22%20height%3D%2218%22%20viewBox%3D%220%200%2018%2018%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M2%201%20L2%2014.5%20L5.5%2011%20L8.5%2016.5%20L10.5%2015.5%20L7.5%2010%20L12.5%2010%20Z%22%20fill%3D%22%23050507%22%20stroke%3D%22%23ff003c%22%20stroke-width%3D%221.4%22%20stroke-linejoin%3D%22round%22/%3E%3Cpolygon%20points%3D%223.5%2C3.5%203.5%2C9.5%205.5%2C7.5%207.5%2C11.5%208.5%2C11%206.5%2C7%209.5%2C7%22%20fill%3D%22%23ff003c%22%20fill-opacity%3D%220.4%22/%3E%3Ccircle%20cx%3D%223.2%22%20cy%3D%223.2%22%20r%3D%220.8%22%20fill%3D%22%23ffffff%22/%3E%3C/svg%3E") 2 1, auto;
+  --cursor-pointer: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M2%201%20L2%2014.5%20L5.5%2011%20L8.5%2016.5%20L10.5%2015.5%20L7.5%2010%20L12.5%2010%20Z%22%20fill%3D%22%23050507%22%20stroke%3D%22%23ff003c%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%225%22%20r%3D%223.5%22%20stroke%3D%22%23ff003c%22%20stroke-width%3D%221.2%22%20stroke-dasharray%3D%221.5%201.5%22/%3E%3Ccircle%20cx%3D%2215%22%20cy%3D%225%22%20r%3D%221.2%22%20fill%3D%22%23ff003c%22/%3E%3C/svg%3E") 2 1, pointer;
+  --cursor-text: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2214%22%20height%3D%2218%22%20viewBox%3D%220%200%2014%2018%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M3%201%20L11%201%20M7%201%20L7%2017%20M3%2017%20L11%2017%22%20stroke%3D%22%23ff003c%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22/%3E%3Cline%20x1%3D%227%22%20y1%3D%223%22%20x2%3D%227%22%20y2%3D%2215%22%20stroke%3D%22%23050507%22%20stroke-width%3D%220.8%22/%3E%3C/svg%3E") 7 9, text;
+  --cursor-disabled: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%226.5%22%20fill%3D%22%23050507%22%20stroke%3D%22%23ff003c%22%20stroke-width%3D%221.5%22/%3E%3Cline%20x1%3D%223.5%22%20y1%3D%223.5%22%20x2%3D%2212.5%22%20y2%3D%2212.5%22%20stroke%3D%22%23ff003c%22%20stroke-width%3D%221.5%22/%3E%3C/svg%3E") 8 8, not-allowed;
+}
+
+html, body {
+  cursor: var(--cursor-default);
+}
+
+a, button, [role="button"], input[type="submit"], input[type="button"], select, 
+.dash-btn, .mac-dot, .clickable, .stage-card, .hud-btn, 
+.interactive-option, .circuit-gate-option, .code-line-interactive, .buzzer-btn,
+.view-mode-pill, label[for], .btn-primary, .btn-secondary, .pulse-btn {
+  cursor: var(--cursor-pointer) !important;
+}
+
+input[type="text"], input[type="password"], textarea, .dash-search-input, .dash-login-input, .cyber-text-input {
+  cursor: var(--cursor-text) !important;
+}
+
+button:disabled, .disabled, [disabled], .btn-disabled {
+  cursor: var(--cursor-disabled) !important;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.cyber-theme {
+  background-color: var(--bg-darkest);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  background-image: 
+    radial-gradient(circle at 50% 10%, rgba(255, 0, 60, 0.08) 0%, transparent 60%),
+    linear-gradient(rgba(255, 0, 60, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 60, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Ambient Drifting Red Dots Particle Canvas */
+#cyber-particles-canvas {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  display: block !important;
+}
+
+/* Mouse Click Twinkle & Sparkle Overlay Canvas */
+#cyber-twinkle-canvas {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+  display: block !important;
+}
+
+/* Master Top HUD Navigation */
+.master-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--neon-red);
+  box-shadow: 0 4px 24px rgba(255, 0, 60, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.hud-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-logo-icon {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, var(--neon-red), var(--neon-red-deep));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 0 12px var(--neon-red-glow);
+}
+
+.hud-logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-primary {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.logo-slash {
+  color: var(--neon-red);
+  text-shadow: var(--glow-text);
+}
+
+.logo-sub {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 1.5px;
+  color: var(--neon-red-bright);
+}
+
+/* Live Telemetry */
+.hud-telemetry {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.telemetry-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(25, 12, 18, 0.6);
+  padding: 4px 16px;
+  border: 1px solid rgba(255, 0, 60, 0.3);
+  border-radius: 10px;
+}
+
+.credits-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-color: rgba(255, 0, 60, 0.6);
+}
+
+.credits-item:hover {
+  background: rgba(255, 0, 60, 0.15);
+  box-shadow: 0 0 12px rgba(255, 0, 60, 0.4);
+}
+
+.telemetry-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.telemetry-value-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.cyber-score-val {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.unit {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--neon-red-bright);
+}
+
+.credit-glyph {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--neon-red-bright);
+  text-shadow: var(--glow-text);
+}
+
+.cyber-credit-val {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--neon-red-bright);
+}
+
+/* HUD Controls */
+.hud-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-btn {
+  background: rgba(20, 20, 30, 0.8);
+  border: 1px solid rgba(255, 0, 60, 0.4);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hud-btn:hover {
+  border-color: var(--neon-red);
+  background: rgba(255, 0, 60, 0.15);
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+}
+
+.dashboard-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  border-color: rgba(255, 0, 60, 0.4);
+  color: #ffffff;
+}
+
+.dashboard-btn:hover {
+  border-color: #ffffff;
+  background: rgba(255, 0, 60, 0.2);
+  box-shadow: 0 0 12px rgba(255, 0, 60, 0.5);
+}
+
+/* Tactical Sub-HUD */
+.tactical-sub-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 28px;
+  background: rgba(12, 12, 18, 0.9);
+  border-bottom: 1px solid rgba(255, 0, 60, 0.2);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.round-tracker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-red);
+  box-shadow: 0 0 8px var(--neon-red);
+  animation: pulsePip 2s infinite;
+}
+
+.hud-round-title {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.divider {
+  color: var(--text-muted);
+}
+
+.hud-round-progress {
+  color: var(--neon-red-bright);
+}
+
+/* Timer Tracker */
+.timer-tracker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(20, 20, 30, 0.8);
+  padding: 4px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 0, 60, 0.3);
+}
+
+.timer-label {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.timer-val {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.timer-sec {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.timer-frozen {
+  border-color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Tactical Perk Hotbar */
+.tactical-perks-hotbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hotbar-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.perk-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(22, 14, 20, 0.85);
+  border: 1px solid rgba(255, 0, 60, 0.4);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.perk-action-btn:hover:not(.disabled-perk) {
+  border-color: var(--neon-red);
+  background: rgba(255, 0, 60, 0.2);
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+}
+
+.perk-badge {
+  background: var(--neon-red);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.disabled-perk {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #333;
+}
+
+.shield-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(30, 20, 26, 0.6);
+  border: 1px solid rgba(255, 0, 60, 0.3);
+  border-radius: 9px;
+  font-size: 0.75rem;
+}
+
+.shield-stock {
+  font-weight: bold;
+  color: var(--neon-red-bright);
+}
+
+/* Main Container */
+.arena-main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 80px 20px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@keyframes pulsePip {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+@media (max-width: 768px) {
+  .master-hud {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hud-telemetry {
+    gap: 8px;
+  }
+  .tactical-sub-hud {
+    padding: 10px 14px;
+  }
+  .tactical-perks-hotbar {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

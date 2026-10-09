@@ -31,13 +31,13 @@ const server = http.createServer(app);
 
 // Configuration
 const PORT = process.env.PORT || 8000;
-const MONGO_URI = process.env.MONGO_URI || '';
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ==========================================
 // MONGOOSE SCHEMA & MODEL
@@ -507,16 +507,17 @@ app.post('/api/buzzer/clear', (req, res) => {
 
 // Dedicated dashboard routes
 app.get(['/dashboard', '/admin'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
+  res.redirect('/dashboard.html');
 });
 
 // Fallback to arena index
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'API route not found' });
+  res.redirect('/');
 });
 
-// Start Server
-server.listen(PORT, () => {
+// Start a port listener only for local/Render hosting. Vercel imports the server directly.
+if (require.main === module && !process.env.VERCEL) server.listen(PORT, () => {
   console.log(`[MINDMIND Arena Server] Running on http://localhost:${PORT}`);
   console.log(`[Admin Dashboard] Available at http://localhost:${PORT}/dashboard.html`);
 });
