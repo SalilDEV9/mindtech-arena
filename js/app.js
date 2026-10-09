@@ -295,7 +295,7 @@ class MindmindGame {
       const res = await fetch('/api/teams/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamId: this.teamId })
+        body: JSON.stringify({ teamId: this.teamId, teamName: this.playerName === 'CYBER_OPERATOR' ? '' : this.playerName })
       });
       if (res.ok) {
         const data = await res.json();

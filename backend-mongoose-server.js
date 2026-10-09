@@ -55,6 +55,11 @@ if (mongoose) {
       trim: true,
       uppercase: true
     },
+    teamName: {
+      type: String,
+      trim: true,
+      maxlength: 40
+    },
     score: {
       type: Number,
       required: true,
@@ -129,17 +134,33 @@ async function addPointsToTeam(rawTeamId, points) {
   return existing;
 }
 
-async function getOrCreateTeam(rawTeamId) {
+async function getOrCreateTeam(rawTeamId, rawTeamName) {
   const teamId = String(rawTeamId || '').trim().toUpperCase().replace(/[^\w\-_]/g, '').slice(0, 32);
+  const teamName = typeof rawTeamName === 'string'
+    ? rawTeamName.trim().replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 40)
+    : '';
   if (!teamId) return null;
 
   if (isMongoConnected && Team) {
     try {
       let doc = await Team.findOne({ teamId }).lean();
       if (!doc) {
-        doc = await Team.create({ teamId, score: 0, currentRound: 1, updatedAt: new Date() });
+        doc = await Team.create({
+          teamId,
+          ...(teamName ? { teamName } : {}),
+          score: 0,
+          currentRound: 1,
+          updatedAt: new Date()
+        });
+      } else if (teamName && !doc.teamName) {
+        // Record a team name once, without overwriting existing identities or scores.
+        doc = await Team.findOneAndUpdate(
+          { teamId, $or: [{ teamName: { $exists: false } }, { teamName: '' }, { teamName: null }] },
+          { $set: { teamName } },
+          { new: true }
+        ).lean() || doc;
       }
-      inMemoryTeams.set(teamId, { teamId, score: doc.score, currentRound: doc.currentRound, updatedAt: doc.updatedAt });
+      inMemoryTeams.set(teamId, { teamId, teamName: doc.teamName || '', score: doc.score, currentRound: doc.currentRound, updatedAt: doc.updatedAt });
       return doc;
     } catch (e) {
       console.warn('[MongoDB] Team query failed, fallback to memory:', e.message);
@@ -147,7 +168,9 @@ async function getOrCreateTeam(rawTeamId) {
   }
 
   if (!inMemoryTeams.has(teamId)) {
-    inMemoryTeams.set(teamId, { teamId, score: 0, currentRound: 1, updatedAt: new Date() });
+    inMemoryTeams.set(teamId, { teamId, ...(teamName ? { teamName } : {}), score: 0, currentRound: 1, updatedAt: new Date() });
+  } else if (teamName && !inMemoryTeams.get(teamId).teamName) {
+    inMemoryTeams.get(teamId).teamName = teamName;
   }
   return inMemoryTeams.get(teamId);
 }
@@ -352,11 +375,14 @@ app.post('/api/admin/login', (req, res) => {
 // 2. Team Authentication / Registration
 app.post('/api/teams/login', async (req, res) => {
   try {
-    const { teamId } = req.body || {};
+    const { teamId, teamName } = req.body || {};
     if (!teamId || typeof teamId !== 'string') {
       return res.status(400).json({ error: 'Valid teamId required' });
     }
-    const team = await getOrCreateTeam(teamId);
+    if (teamName !== undefined && typeof teamName !== 'string') {
+      return res.status(400).json({ error: 'teamName must be a string' });
+    }
+    const team = await getOrCreateTeam(teamId, teamName);
     res.status(200).json({ success: true, team });
   } catch (err) {
     res.status(500).json({ error: 'Error logging in team' });
