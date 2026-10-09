@@ -11,24 +11,32 @@ class Round2Bugs {
     this.selectedLineIndex = null;
     this.lineConfirmed = false;
     this.answered = false;
-    this.timer = 80;
+    this.totalRoundSeconds = 20 * 60; // 20-Minute Countdown for Round 2 (1200s)
+    this.roundSecondsRemaining = this.totalRoundSeconds;
     this.timerInterval = null;
     this.isFrozen = false;
     this.showingHint = false;
+    this.bugStartTime = null;
   }
 
   start() {
     if (typeof getShuffledQuestions === 'function') {
-      this.questions = getShuffledQuestions('round2', 8);
+      this.questions = getShuffledQuestions('round2');
     } else if (typeof window !== 'undefined' && typeof window.getShuffledQuestions === 'function') {
-      this.questions = window.getShuffledQuestions('round2', 8);
+      this.questions = window.getShuffledQuestions('round2');
     } else if (typeof window !== 'undefined' && window.QUESTION_DATABASE && window.QUESTION_DATABASE.round2) {
-      this.questions = [...window.QUESTION_DATABASE.round2].slice(0, 8);
+      this.questions = [...window.QUESTION_DATABASE.round2];
     } else {
-      this.questions = [...QUESTION_DATABASE.round2].slice(0, 8);
+      this.questions = [...QUESTION_DATABASE.round2];
     }
     this.currentIndex = 0;
     this.attachKeyListeners();
+
+    // Global 20-Minute Countdown Timer for Round 2 (1200s)
+    this.totalRoundSeconds = 20 * 60;
+    this.roundSecondsRemaining = this.totalRoundSeconds;
+    this.startGlobalTimer();
+
     this.loadBug(this.currentIndex);
   }
 
@@ -50,6 +58,13 @@ class Round2Bugs {
     });
   }
 
+  formatClockTime(sec) {
+    const s = Math.max(0, Math.floor(sec));
+    const mins = Math.floor(s / 60);
+    const remainder = s % 60;
+    return `${mins.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
+  }
+
   loadBug(index) {
     if (!this.questions || this.questions.length === 0) {
       this.questions = (typeof QUESTION_DATABASE !== 'undefined' ? QUESTION_DATABASE.round2 : []) || [];
@@ -64,59 +79,54 @@ class Round2Bugs {
     this.selectedLineIndex = null;
     this.lineConfirmed = false;
     this.answered = false;
-    this.initialTimer = this.calculateBugDuration(q);
-    this.timer = this.initialTimer;
-    this.isFrozen = false;
+    this.bugStartTime = Date.now();
     this.showingHint = false;
 
     this.render();
-    this.startTimer();
+    this.updateTimerDisplays();
   }
 
-  calculateBugDuration(q) {
-    if (!q) return 180;
-    if (q.timeLimit && typeof q.timeLimit === 'number') return q.timeLimit;
-    const textLen = (q.scenario || '').length;
-    const lineCount = (q.codeLines || []).length;
-    let duration = 160 + (lineCount * 3);
-    if (textLen > 250) duration += 15;
-    return Math.min(210, Math.max(160, duration));
-  }
-
-  startTimer() {
+  startGlobalTimer() {
     clearInterval(this.timerInterval);
-    const timerDisplay = document.getElementById('round-timer-val');
-    const cardTimerDisplay = document.getElementById('card-timer-val');
-    if (timerDisplay) timerDisplay.textContent = this.timer;
-    if (cardTimerDisplay) cardTimerDisplay.textContent = this.timer;
+    this.updateTimerDisplays();
 
     this.timerInterval = setInterval(() => {
       if (this.isFrozen) return;
 
-      this.timer--;
-      if (timerDisplay) {
-        timerDisplay.textContent = this.timer;
-        if (this.timer <= 10) {
-          timerDisplay.classList.add('urgent-pulse');
-          if (window.soundEngine) window.soundEngine.playTick(true);
-        } else {
-          timerDisplay.classList.remove('urgent-pulse');
-        }
-      }
-      if (cardTimerDisplay) {
-        cardTimerDisplay.textContent = this.timer;
-        if (this.timer <= 10) {
-          cardTimerDisplay.classList.add('urgent-pulse');
-        } else {
-          cardTimerDisplay.classList.remove('urgent-pulse');
+      this.roundSecondsRemaining--;
+      this.updateTimerDisplays();
+
+      // Urgent audio pulse when less than 2 minutes remain
+      if (this.roundSecondsRemaining <= 120 && this.roundSecondsRemaining > 0) {
+        if (window.soundEngine && this.roundSecondsRemaining <= 30) {
+          window.soundEngine.playTick(true);
         }
       }
 
-      if (this.timer <= 0) {
+      if (this.roundSecondsRemaining <= 0) {
         clearInterval(this.timerInterval);
-        this.handleTimeout();
+        this.handleTimeExpired();
       }
     }, 1000);
+  }
+
+  updateTimerDisplays() {
+    const formatted = this.formatClockTime(this.roundSecondsRemaining);
+    const timerDisplay = document.getElementById('round-timer-val');
+    const cardTimerDisplay = document.getElementById('card-timer-val');
+
+    if (timerDisplay) timerDisplay.textContent = formatted;
+    if (cardTimerDisplay) cardTimerDisplay.textContent = formatted;
+
+    const isUrgent = this.roundSecondsRemaining <= 120;
+    if (timerDisplay) {
+      if (isUrgent) timerDisplay.classList.add('urgent-pulse');
+      else timerDisplay.classList.remove('urgent-pulse');
+    }
+    if (cardTimerDisplay) {
+      if (isUrgent) cardTimerDisplay.classList.add('urgent-pulse');
+      else cardTimerDisplay.classList.remove('urgent-pulse');
+    }
   }
 
   stopTimer() {
@@ -138,13 +148,11 @@ class Round2Bugs {
     }, seconds * 1000);
   }
 
-  handleTimeout() {
-    if (this.answered) return;
-    this.answered = true;
+  handleTimeExpired() {
+    this.stopTimer();
     if (window.soundEngine) window.soundEngine.playError();
-
-    const q = this.questions[this.currentIndex];
-    this.showFeedback(false, "TIME EXPIRED! Inspection time ended.", q.errorExplanation);
+    alert("TIME EXPIRED: The 20-minute time limit for Round 2 has concluded. Advancing to Round 3.");
+    this.finishRound();
   }
 
   highlightCode(rawLine, category) {
@@ -198,7 +206,7 @@ class Round2Bugs {
           </div>
           <div class="topbar-right">
             <span class="cyber-badge points-badge">+150 PTS</span>
-            <span class="cyber-badge duration-badge" style="border-color: rgba(255, 0, 60, 0.4); color: #fff;">⏱ <span id="card-timer-val">${this.timer}</span>s</span>
+            <span class="cyber-badge duration-badge" style="border-color: rgba(255, 0, 60, 0.4); color: #fff;">⏱ <span id="card-timer-val">${this.formatClockTime(this.roundSecondsRemaining)}</span></span>
           </div>
         </div>
 
@@ -295,9 +303,8 @@ class Round2Bugs {
       }
 
       // Spotting the defective line: +30 PTS base (+ up to 5 speed bonus)
-      const totalTime = this.initialTimer || 160;
-      const speedRatio = Math.max(0, this.timer / totalTime);
-      const lineSpeedBonus = Math.min(5, Math.max(0, Math.round(speedRatio * 5)));
+      const elapsedSec = (Date.now() - (this.bugStartTime || Date.now())) / 1000;
+      const lineSpeedBonus = Math.max(0, Math.min(5, Math.round((1 - (elapsedSec / 60)) * 5)));
       const linePts = 30 + lineSpeedBonus;
       this.game.addScore(linePts);
       if (window.armoryStore) window.armoryStore.showFloatingHUDNotification(`Defective Line Identified: +${linePts} PTS`);
@@ -321,7 +328,7 @@ class Round2Bugs {
   handleSelectPatch(fixIndex) {
     if (this.answered) return;
     this.answered = true;
-    this.stopTimer();
+    // Note: Global round timer continues ticking across all 16 bugs
 
     const q = this.questions[this.currentIndex];
     const isCorrect = fixIndex === q.correctFixIndex;
@@ -332,11 +339,10 @@ class Round2Bugs {
       if (selectedBtn) selectedBtn.classList.add('btn-correct');
       if (window.soundEngine) window.soundEngine.playSuccess();
 
-      // Patch selection: 120 Base PTS + Speed Bonus: up to 10 PTS max (Total ~150-165 PTS)
+      // Patch selection: 120 Base PTS + Speed Bonus: up to 10 PTS max based on bug solving speed
       const basePts = 120;
-      const totalTime = this.initialTimer || 160;
-      const speedRatio = Math.max(0, this.timer / totalTime);
-      const patchSpeedBonus = Math.min(10, Math.max(0, Math.round(speedRatio * 10)));
+      const elapsedSec = (Date.now() - (this.bugStartTime || Date.now())) / 1000;
+      const patchSpeedBonus = Math.max(0, Math.min(10, Math.round((1 - (elapsedSec / 90)) * 10)));
       const earnedScore = basePts + patchSpeedBonus;
       this.game.addScore(earnedScore);
 

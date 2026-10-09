@@ -31,8 +31,8 @@ const server = http.createServer(app);
 
 // Configuration
 const PORT = process.env.PORT || 8000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://karunyanani44_db_user:Karunya2007@karunyadb.y1s1gei.mongodb.net/?appName=KarunyaDB';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Karunya2007';
+const MONGO_URI = process.env.MONGO_URI || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 // Middlewares
 app.use(cors());
@@ -153,6 +153,11 @@ async function getOrCreateTeam(rawTeamId) {
 }
 
 // ==========================================
+// TOURNAMENT QUIZ STATE (GATEKEEPER)
+// ==========================================
+let isQuizStarted = false;
+
+// ==========================================
 // REAL-TIME BUZZER STATE
 // ==========================================
 let activeBuzzerQuestion = null; // { questionIndex, questionText, category, activatedAt }
@@ -168,6 +173,9 @@ if (socketIo) {
   });
 
   io.on('connection', (socket) => {
+    // Send active quiz gatekeeper status on connection
+    socket.emit('quiz:status', { quizStarted: isQuizStarted });
+
     // Send active state on connection
     if (activeBuzzerQuestion) {
       socket.emit('buzzer:question_displayed', {
@@ -181,7 +189,24 @@ if (socketIo) {
     // Admin joins
     socket.on('admin:join', () => {
       socket.join('admin_room');
+      socket.emit('quiz:status', { quizStarted: isQuizStarted });
       socket.emit('admin:buzzer_queue_update', buzzerQueue);
+    });
+
+    // Admin starts tournament quiz
+    socket.on('admin:start_quiz', () => {
+      isQuizStarted = true;
+      io.emit('quiz:started', { quizStarted: true, timestamp: Date.now() });
+      io.to('admin_room').emit('quiz:status', { quizStarted: true });
+      console.log('[Quiz Gatekeeper] Admin started tournament quiz.');
+    });
+
+    // Admin stops / pauses tournament quiz
+    socket.on('admin:stop_quiz', () => {
+      isQuizStarted = false;
+      io.emit('quiz:stopped', { quizStarted: false, timestamp: Date.now() });
+      io.to('admin_room').emit('quiz:status', { quizStarted: false });
+      console.log('[Quiz Gatekeeper] Admin stopped/paused tournament quiz.');
     });
 
     // Team registers
@@ -189,6 +214,7 @@ if (socketIo) {
       if (data && data.teamId) {
         socket.teamId = String(data.teamId).trim().toUpperCase();
         socket.join(`team_${socket.teamId}`);
+        socket.emit('quiz:status', { quizStarted: isQuizStarted });
       }
     });
 
@@ -282,16 +308,42 @@ app.get(['/healthz', '/api/health'], (req, res) => {
     service: 'MINDMIND Cyber Arena Server',
     mongoConnected: isMongoConnected,
     cachedTeamsCount: inMemoryTeams.size,
+    quizStarted: isQuizStarted,
     activeBuzzerQuestion: !!activeBuzzerQuestion,
     buzzerQueueCount: buzzerQueue.length,
     timestamp: new Date().toISOString()
   });
 });
 
+// Tournament Quiz Gatekeeper Endpoints
+app.get('/api/quiz/status', (req, res) => {
+  res.status(200).json({ quizStarted: isQuizStarted });
+});
+
+app.post('/api/quiz/start', (req, res) => {
+  isQuizStarted = true;
+  if (io) {
+    io.emit('quiz:started', { quizStarted: true, timestamp: Date.now() });
+    io.to('admin_room').emit('quiz:status', { quizStarted: true });
+  }
+  console.log('[Quiz Gatekeeper] Tournament started via HTTP API.');
+  res.status(200).json({ success: true, quizStarted: true });
+});
+
+app.post('/api/quiz/stop', (req, res) => {
+  isQuizStarted = false;
+  if (io) {
+    io.emit('quiz:stopped', { quizStarted: false, timestamp: Date.now() });
+    io.to('admin_room').emit('quiz:status', { quizStarted: false });
+  }
+  console.log('[Quiz Gatekeeper] Tournament stopped via HTTP API.');
+  res.status(200).json({ success: true, quizStarted: false });
+});
+
 // 1. Admin Authentication
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body || {};
-  if (password === ADMIN_PASSWORD) {
+  if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
     return res.status(200).json({ success: true, token: 'admin_authenticated_session' });
   }
   return res.status(401).json({ success: false, error: 'Invalid admin credentials' });
@@ -356,11 +408,13 @@ app.post('/api/scores/reset', async (req, res) => {
     }
     activeBuzzerQuestion = null;
     buzzerQueue = [];
+    isQuizStarted = false;
     if (io) {
       io.emit('scores:reset');
       io.emit('buzzer:cleared');
+      io.emit('quiz:stopped', { quizStarted: false });
     }
-    res.status(200).json({ success: true, message: 'All scores and records reset.' });
+    res.status(200).json({ success: true, message: 'All scores, quiz status, and buzzer records reset.' });
   } catch (err) {
     res.status(500).json({ error: 'Error resetting scores' });
   }

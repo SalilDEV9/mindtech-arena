@@ -11,32 +11,20 @@
   }
 
   /**
-   * Set of 4 Available Competition Question Sets
+   * Set of Available Competition Question Sets (SET 1 and SET 2)
    */
   const AVAILABLE_SETS = [
     {
       id: "set1",
       name: "SET 1 (ALPHA)",
       badge: "ALPHA",
-      description: "5-Person Seating Deduction, Torch Bridge Crossing, C Variable Swaps, Python String Indexing & Easy Syntax Traps"
+      description: "15 Visual/Logic Puzzles, 16 Error Traps & 16 Buzzer Challenges (Alpha Matrix)"
     },
     {
       id: "set2",
       name: "SET 2 (BETA)",
       badge: "BETA",
-      description: "5-Floor Residency Deduction, Two Trains Crossing Time, C Integer Division, Python List Appends & Easy Syntax Traps"
-    },
-    {
-      id: "set3",
-      name: "SET 3 (GAMMA)",
-      badge: "GAMMA",
-      description: "Truth-Tellers & Liars Island, Multi-Pipe Reservoir Rates, C Single Pointers, Python Range Lengths & Easy Syntax Traps"
-    },
-    {
-      id: "set4",
-      name: "SET 4 (DELTA)",
-      badge: "DELTA",
-      description: "Circular Table Seating Logic, 1947 Calendar Deduction, C Increment Traces, Python String Repetition & Easy Syntax Traps"
+      description: "15 Visual/Logic Puzzles, 16 Error Traps & 16 Buzzer Challenges (Beta Matrix)"
     }
   ];
 

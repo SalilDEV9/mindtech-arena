@@ -104,6 +104,25 @@
       </div>
     </header>
 
+    <!-- Master Tournament Quiz Gatekeeper Control -->
+    <section class="tournament-launch-bar glass-panel" style="margin: 20px 0; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--neon-red); background: rgba(18, 18, 26, 0.75); border-radius: 8px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="pulse-radar-dot" id="quiz-live-dot" style="background: #ff003c; width: 12px; height: 12px;"></span>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.1em; color: #888899;">TOURNAMENT GATEKEEPER:</span>
+            <span class="cyber-badge" id="quiz-status-badge" style="border-color: #ff003c; color: #ff003c; font-weight: 700;">QUIZ LOCKED (NOT STARTED)</span>
+          </div>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #aaaabb;">Teams cannot enter the arena until you click "START QUIZ".</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button id="btn-toggle-quiz" class="dash-btn btn-primary pulse-btn" style="background: #ff003c; color: #fff; font-weight: 700; padding: 10px 22px; font-size: 0.95rem; cursor: pointer;">
+          🚀 START QUIZ
+        </button>
+      </div>
+    </section>
+
     <!-- Aesthetic Hero Editorial Statement -->
     <section class="dash-hero-statement">
       <div class="hero-badge-row">
@@ -230,8 +249,6 @@
               <select id="admin-set-select" class="cyber-select-input">
                 <option value="set1" selected>SET 1 (ALPHA)</option>
                 <option value="set2">SET 2 (BETA)</option>
-                <option value="set3">SET 3 (GAMMA)</option>
-                <option value="set4">SET 4 (DELTA)</option>
               </select>
             </div>
             <div class="selector-group">
@@ -360,11 +377,9 @@
   </script>
 
   <!-- Question Sets for Admin Preview -->
-  <script src="js/questions-set1.js?v=5.2"></script>
-  <script src="js/questions-set2.js?v=5.2"></script>
-  <script src="js/questions-set3.js?v=5.2"></script>
-  <script src="js/questions-set4.js?v=5.2"></script>
-  <script src="js/questions.js?v=5.2"></script>
+  <script src="js/questions-set1.js?v=6.0"></script>
+  <script src="js/questions-set2.js?v=6.0"></script>
+  <script src="js/questions.js?v=6.0"></script>
 
   <!-- Scripts -->
   <script src="js/particles.js?v=5.2"></script>

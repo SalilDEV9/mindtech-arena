@@ -19,16 +19,22 @@ class Round1Visual {
 
   start() {
     if (typeof getShuffledQuestions === 'function') {
-      this.questions = getShuffledQuestions('round1', 4);
+      this.questions = getShuffledQuestions('round1');
     } else if (typeof window !== 'undefined' && typeof window.getShuffledQuestions === 'function') {
-      this.questions = window.getShuffledQuestions('round1', 4);
+      this.questions = window.getShuffledQuestions('round1');
     } else if (typeof window !== 'undefined' && window.QUESTION_DATABASE && window.QUESTION_DATABASE.round1) {
-      this.questions = [...window.QUESTION_DATABASE.round1].slice(0, 4);
+      this.questions = [...window.QUESTION_DATABASE.round1];
     } else {
-      this.questions = [...QUESTION_DATABASE.round1].slice(0, 4);
+      this.questions = [...QUESTION_DATABASE.round1];
     }
     this.currentIndex = 0;
     this.attachKeyListeners();
+
+    // Global 30-Minute Countdown Timer for Round 1 (1800s)
+    this.totalRoundSeconds = 30 * 60;
+    this.roundSecondsRemaining = this.totalRoundSeconds;
+    this.startGlobalTimer();
+
     this.loadQuestion(this.currentIndex);
   }
 
@@ -48,6 +54,13 @@ class Round1Visual {
     });
   }
 
+  formatClockTime(sec) {
+    const s = Math.max(0, Math.floor(sec));
+    const mins = Math.floor(s / 60);
+    const remainder = s % 60;
+    return `${mins.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
+  }
+
   loadQuestion(index) {
     if (!this.questions || this.questions.length === 0) {
       this.questions = (typeof QUESTION_DATABASE !== 'undefined' ? QUESTION_DATABASE.round1 : []) || [];
@@ -63,61 +76,53 @@ class Round1Visual {
     this.selectedOption = null;
     this.purgedOptions = [];
     this.showingHint = false;
-    this.initialTimer = this.calculateQuestionDuration(q);
-    this.timer = this.initialTimer;
-    this.isFrozen = false;
+    this.questionStartTime = Date.now();
 
     this.render();
-    this.startTimer();
+    this.updateTimerDisplays();
   }
 
-  calculateQuestionDuration(q) {
-    if (!q) return 180;
-    if (q.timeLimit && typeof q.timeLimit === 'number') return q.timeLimit;
-    let textLen = (q.instruction || '').length + (q.title || '').length;
-    if (Array.isArray(q.steps)) {
-      textLen += q.steps.join(' ').length;
-    }
-    let duration = 160;
-    if (textLen > 400) duration = 210;
-    else if (textLen > 250) duration = 180;
-    return duration;
-  }
-
-  startTimer() {
+  startGlobalTimer() {
     clearInterval(this.timerInterval);
-    const timerDisplay = document.getElementById('round-timer-val');
-    const cardTimerDisplay = document.getElementById('card-timer-val');
-    if (timerDisplay) timerDisplay.textContent = this.timer;
-    if (cardTimerDisplay) cardTimerDisplay.textContent = this.timer;
+    this.updateTimerDisplays();
 
     this.timerInterval = setInterval(() => {
       if (this.isFrozen) return;
 
-      this.timer--;
-      if (timerDisplay) {
-        timerDisplay.textContent = this.timer;
-        if (this.timer <= 10) {
-          timerDisplay.classList.add('urgent-pulse');
-          if (window.soundEngine) window.soundEngine.playTick(true);
-        } else {
-          timerDisplay.classList.remove('urgent-pulse');
-        }
-      }
-      if (cardTimerDisplay) {
-        cardTimerDisplay.textContent = this.timer;
-        if (this.timer <= 10) {
-          cardTimerDisplay.classList.add('urgent-pulse');
-        } else {
-          cardTimerDisplay.classList.remove('urgent-pulse');
+      this.roundSecondsRemaining--;
+      this.updateTimerDisplays();
+
+      // Urgent audio pulse when less than 2 minutes (120s) remain
+      if (this.roundSecondsRemaining <= 120 && this.roundSecondsRemaining > 0) {
+        if (window.soundEngine && this.roundSecondsRemaining <= 30) {
+          window.soundEngine.playTick(true);
         }
       }
 
-      if (this.timer <= 0) {
+      if (this.roundSecondsRemaining <= 0) {
         clearInterval(this.timerInterval);
-        this.handleTimeout();
+        this.handleTimeExpired();
       }
     }, 1000);
+  }
+
+  updateTimerDisplays() {
+    const formatted = this.formatClockTime(this.roundSecondsRemaining);
+    const timerDisplay = document.getElementById('round-timer-val');
+    const cardTimerDisplay = document.getElementById('card-timer-val');
+
+    if (timerDisplay) timerDisplay.textContent = formatted;
+    if (cardTimerDisplay) cardTimerDisplay.textContent = formatted;
+
+    const isUrgent = this.roundSecondsRemaining <= 120;
+    if (timerDisplay) {
+      if (isUrgent) timerDisplay.classList.add('urgent-pulse');
+      else timerDisplay.classList.remove('urgent-pulse');
+    }
+    if (cardTimerDisplay) {
+      if (isUrgent) cardTimerDisplay.classList.add('urgent-pulse');
+      else cardTimerDisplay.classList.remove('urgent-pulse');
+    }
   }
 
   stopTimer() {
@@ -128,7 +133,14 @@ class Round1Visual {
     if (cardTimerDisplay) cardTimerDisplay.classList.remove('urgent-pulse');
   }
 
-  freezeTimer(seconds = 10) {
+  handleTimeExpired() {
+    this.stopTimer();
+    if (window.soundEngine) window.soundEngine.playError();
+    alert("TIME EXPIRED: The 30-minute time limit for Round 1 has concluded. Advancing to Round 2.");
+    this.finishRound();
+  }
+
+  freezeTimer(seconds = 15) {
     this.isFrozen = true;
     const timerBox = document.getElementById('hud-timer-badge');
     if (timerBox) timerBox.classList.add('timer-frozen');
@@ -137,15 +149,6 @@ class Round1Visual {
       this.isFrozen = false;
       if (timerBox) timerBox.classList.remove('timer-frozen');
     }, seconds * 1000);
-  }
-
-  handleTimeout() {
-    if (this.answered) return;
-    this.answered = true;
-    if (window.soundEngine) window.soundEngine.playError();
-
-    const q = this.questions[this.currentIndex];
-    this.showFeedback(false, "TIME EXPIRED! No answer submitted in time.", q.explanation);
   }
 
   render() {
@@ -165,7 +168,7 @@ class Round1Visual {
           </div>
           <div class="topbar-right">
             <span class="cyber-badge points-badge">+100 PTS</span>
-            <span class="cyber-badge duration-badge" style="border-color: rgba(255, 0, 60, 0.4); color: #fff;">⏱ <span id="card-timer-val">${this.timer}</span>s</span>
+            <span class="cyber-badge duration-badge" style="border-color: rgba(255, 0, 60, 0.4); color: #fff;">⏱ <span id="card-timer-val">${this.formatClockTime(this.roundSecondsRemaining)}</span></span>
           </div>
         </div>
 
@@ -473,13 +476,25 @@ class Round1Visual {
       `;
     }
 
+    // 9. Drone Waypoint Flight Path (v1_13, v2_13)
+    if (title.includes('drone') || id.includes('13')) {
+      return `
+        <div class="clean-schematic-bar clean-drone-schematic">
+          <div class="cal-col"><span class="schem-label">START</span><span class="schem-chip">Dock O (0, 0)</span></div>
+          <div class="cal-sep">▲ 15 km N</div>
+          <div class="cal-col"><span class="schem-label">LEG 2</span><span class="schem-chip">► 9 km E</span></div>
+          <div class="cal-sep">▼ 3 km S</div>
+          <div class="cal-col"><span class="schem-label">FINISH</span><span class="schem-chip">Charlie (9, 12)</span></div>
+        </div>
+      `;
+    }
+
     return '';
   }
 
   handleSelectOption(optionIndex) {
     if (this.answered) return;
     this.answered = true;
-    this.stopTimer();
 
     const q = this.questions[this.currentIndex];
     const isCorrect = optionIndex === q.correctIndex;
@@ -490,11 +505,10 @@ class Round1Visual {
       if (selectedBtn) selectedBtn.classList.add('btn-correct');
       if (window.soundEngine) window.soundEngine.playSuccess();
       
-      // Question value: 100 Base PTS + Speed Bonus: up to 10 PTS max
+      // Question value: 100 Base PTS + Speed Bonus: up to 10 PTS based on question answer speed
       const basePts = 100;
-      const totalTime = this.initialTimer || 120;
-      const speedRatio = Math.max(0, this.timer / totalTime);
-      const speedBonus = Math.min(10, Math.max(0, Math.round(speedRatio * 10)));
+      const elapsedSec = (Date.now() - (this.questionStartTime || Date.now())) / 1000;
+      const speedBonus = Math.max(0, Math.min(10, Math.round((1 - (elapsedSec / 120)) * 10)));
       const earnedScore = basePts + speedBonus;
       this.game.addScore(earnedScore);
       

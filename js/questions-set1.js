@@ -1,15 +1,16 @@
 /**
- * MIND//MIND Cyber Arena - Question Set 1 (SET 1 (ALPHA))
- * Stage 1: 4 Puzzles (Tough lengthy logical puzzles: 270s-300s; Easy code traces: 150s)
- * Stage 2: 8 Error Hunting Traps (Easy fresher bugs: 160s-180s)
- * Stage 3: 8 Buzzer Blitz Questions (Easy fundamentals: 50s-55s read, 10s lockout)
+ * MIND//MIND Cyber Arena - Master Question Set 1 (SET 1 (ALPHA))
+ * Round 1: 15 Visual / Logical / Code Decoding Puzzles (Original Set 1 + Merged Set 3 + 7 Added High-Yield Questions)
+ * Round 2: 16 Bug Hunting Error Traps (Original Set 1 + Merged Set 4)
+ * Round 3: 16 Buzzer Blitz Speed Questions (Original Set 1 + Merged Set 4)
  */
 
 const QUESTION_SET_1 = {
   "id": "set1",
   "name": "SET 1 (ALPHA)",
-  "description": "5-Person Seating Deduction, Torch Bridge Crossing, C Variable Swaps, Python String Indexing & Easy Syntax Traps",
+  "description": "15 Visual Puzzles, 16 Syntax Bug Traps, and 16 Blitz Buzzer Challenges across C, Python, HTML & Logic",
   "round1": [
+    // 1 to 4: Original Set 1
     {
       "id": "v1_1",
       "category": "Logical Reasoning",
@@ -88,9 +89,247 @@ const QUESTION_SET_1 = {
       "hint": "Sending the two slowest people (Gamma and Delta) together saves time, but Beta must return with the torch instead of Alpha.",
       "explanation": "The optimal strategy crosses Alpha & Beta (2 min), returns Alpha (1 min), crosses Gamma & Delta together (10 min), returns Beta (2 min), and finally crosses Alpha & Beta again (2 min). Total: 2 + 1 + 10 + 2 + 2 = 17 minutes.",
       "timeLimit": 300
+    },
+
+    // 5 to 8: Merged from Set 3
+    {
+      "id": "v1_5",
+      "category": "Logical Reasoning",
+      "title": "Knights & Knaves Truth-Tellers Island Puzzle",
+      "instruction": "On a mysterious island, every native inhabitant is either a Knight (who always tells the truth) or a Knave (who always lies).\n\nYou meet three inhabitants: Alex, Ben, and Cole.\n\nStatements:\n1. Alex makes the statement: 'All three of us are Knaves.'\n2. Ben then makes the statement: 'Exactly one of us is a Knight.'\n\nWhat are the true identities of Alex, Ben, and Cole?",
+      "options": [
+        "Alex is a Knave, Ben is a Knight, Cole is a Knave",
+        "Alex is a Knight, Ben is a Knave, Cole is a Knave",
+        "All three are Knaves",
+        "Alex is a Knave, Ben is a Knave, Cole is a Knight"
+      ],
+      "correctIndex": 0,
+      "hint": "Can a Knight ever say 'I am a Knave' or 'All of us are Knaves'?",
+      "explanation": "Alex cannot be a Knight because a Knight cannot truthfully claim all are Knaves. So Alex is a Knave, meaning at least one inhabitant is a Knight. If Ben is that Knight, his statement that exactly one is a Knight holds true, leaving Cole as a Knave.",
+      "timeLimit": 270
+    },
+    {
+      "id": "v1_6",
+      "category": "C Programming",
+      "title": "Pointer Dereference Value Assignment",
+      "instruction": "Trace the pointer dereference below in C. What value does printf(\"%d\", num) output?",
+      "steps": [
+        "int num = 10;",
+        "int *p = &num;",
+        "*p = 50;",
+        "printf(\"%d\", num);"
+      ],
+      "options": [
+        "10",
+        "50",
+        "0",
+        "Garbage value"
+      ],
+      "correctIndex": 1,
+      "hint": "Dereferencing *p directly accesses and modifies the memory location of num.",
+      "explanation": "'*p = 50' writes the value 50 directly into the memory location of 'num'. Therefore, num becomes 50.",
+      "timeLimit": 150
+    },
+    {
+      "id": "v1_7",
+      "category": "Python",
+      "title": "Range Generation & List Length Trace",
+      "instruction": "Trace the Python range() function below. What does print(len(numbers)) display?",
+      "steps": [
+        "numbers = list(range(1, 5))",
+        "print(len(numbers))"
+      ],
+      "options": [
+        "5",
+        "3",
+        "4",
+        "1"
+      ],
+      "correctIndex": 2,
+      "hint": "range(1, 5) generates values 1, 2, 3, and 4 (stopping strictly before 5).",
+      "explanation": "range(1, 5) produces the four numbers: 1, 2, 3, 4. Converting to a list yields [1, 2, 3, 4], which has a length of 4.",
+      "timeLimit": 150
+    },
+    {
+      "id": "v1_8",
+      "category": "Logical Reasoning",
+      "title": "Multi-Inlet Reservoir Filling & Drain Rates",
+      "instruction": "A large water reservoir is equipped with two inlet pipes (Pipe A and Pipe B) and one bottom drain valve (Drain C).\n\nFlow characteristics:\n- Pipe A alone can fill the empty reservoir in 12 hours.\n- Pipe B alone can fill the empty reservoir in 15 hours.\n- Drain C alone can completely empty a full reservoir in 20 hours.\n\nIf the reservoir is initially completely empty and all three—Pipe A, Pipe B, and Drain C—are opened simultaneously, how many hours will it take to fill the reservoir completely?",
+      "options": [
+        "12 hours",
+        "8 hours",
+        "14 hours",
+        "10 hours"
+      ],
+      "correctIndex": 3,
+      "hint": "Find the net rate per hour by adding the filling rates of Pipes A and B, then subtracting the drain rate of C.",
+      "explanation": "Assuming a capacity of 60 units: Pipe A fills 5 units/hr, Pipe B fills 4 units/hr, and Drain C empties 3 units/hr. Net rate = 5 + 4 - 3 = 6 units/hr. Total time = 60 / 6 = 10 hours.",
+      "timeLimit": 270
+    },
+
+    // 9 & 10: Med-High Difficulty Questions
+    {
+      "id": "v1_9",
+      "category": "C Programming",
+      "title": "Recursive State Accumulator & Modulo Decision Tree",
+      "instruction": "Analyze the recursive C function mystery() below. Trace the function execution for mystery(12, 3). What integer value does printf(\"%d\", result) output to the terminal?",
+      "steps": [
+        "int mystery(int n, int k) {",
+        "    if (n <= 0) return 0;",
+        "    if (n % 2 == 0) {",
+        "        return k + mystery(n / 2, k * 2);",
+        "    } else {",
+        "        return mystery(n - 1, k) - k;",
+        "    }",
+        "}",
+        "int result = mystery(12, 3);",
+        "printf(\"%d\", result);"
+      ],
+      "options": [
+        "-15",
+        "18",
+        "-24",
+        "9"
+      ],
+      "correctIndex": 0,
+      "hint": "Unwind the call stack: n=12 (even), n=6 (even), n=3 (odd), n=2 (even), n=1 (odd), n=0 (base).",
+      "explanation": "Stack trace: mystery(12,3) = 3 + mystery(6,6); mystery(6,6) = 6 + mystery(3,12); mystery(3,12) = mystery(2,12) - 12; mystery(2,12) = 12 + mystery(1,24); mystery(1,24) = mystery(0,24) - 24 = -24. Returning up: 12 + (-24) = -12; -12 - 12 = -24; 6 + (-24) = -18; 3 + (-18) = -15.",
+      "timeLimit": 210
+    },
+    {
+      "id": "v1_10",
+      "category": "Python",
+      "title": "Late-Binding Closure Scope & Multiplier List Evaluation",
+      "instruction": "In Python, anonymous functions created in loops bind variables from the enclosing scope by reference. What value does print(sum(output)) display?",
+      "steps": [
+        "def build_multipliers():",
+        "    return [lambda x: i * x for i in range(4)]",
+        "",
+        "multipliers = build_multipliers()",
+        "output = [func(2) for func in multipliers]",
+        "print(sum(output))"
+      ],
+      "options": [
+        "24",
+        "12",
+        "6",
+        "16"
+      ],
+      "correctIndex": 0,
+      "hint": "What is the final value of variable 'i' after the loop completes when each lambda is called?",
+      "explanation": "Python's closures are late-binding: 'i' is looked up when each lambda is invoked, at which point i = 3 for all 4 functions. Each func(2) evaluates to 3 * 2 = 6. The list output is [6, 6, 6, 6], whose sum is 6 * 4 = 24.",
+      "timeLimit": 180
+    },
+
+    // 11 to 15: Easy-Med Difficulty Questions
+    {
+      "id": "v1_11",
+      "category": "Python",
+      "title": "Reversed Substring Slice Traversal with Negative Step",
+      "instruction": "Trace Python string slicing with a negative step below. What does print(slice_result) display?",
+      "steps": [
+        "text = \"PLACEMENT2026\"",
+        "slice_result = text[8:2:-2]",
+        "print(slice_result)"
+      ],
+      "options": [
+        "\"TEE\"",
+        "\"TEN\"",
+        "\"TME\"",
+        "\"TEEA\""
+      ],
+      "correctIndex": 0,
+      "hint": "text[8] is 'T', stepping backward by 2 takes index 6 ('E') and index 4 ('E'). Stop index 2 is excluded.",
+      "explanation": "text[8:2:-2] starts at index 8 ('T'), decrements by 2 collecting index 6 ('E') and index 4 ('E'), stopping strictly before index 2. Result is 'TEE'.",
+      "timeLimit": 150
+    },
+    {
+      "id": "v1_12",
+      "category": "C Programming",
+      "title": "Bitwise XOR Difference & Arithmetic Left-Shift",
+      "instruction": "Trace the bitwise logic manipulation in C below. What value does printf(\"%d\", z) display?",
+      "steps": [
+        "int x = 12; // Binary: 0000 1100",
+        "int y = 5;  // Binary: 0000 0101",
+        "int z = (x ^ y) << 1;",
+        "printf(\"%d\", z);"
+      ],
+      "options": [
+        "18",
+        "9",
+        "24",
+        "14"
+      ],
+      "correctIndex": 0,
+      "hint": "12 ^ 5 computes bitwise XOR. Then << 1 multiplies by 2.",
+      "explanation": "12 ^ 5 in binary is 1100 ^ 0101 = 1001 (decimal 9). 9 << 1 shifts bits left by 1 position, multiplying 9 by 2 to yield 18.",
+      "timeLimit": 150
+    },
+    {
+      "id": "v1_13",
+      "category": "Logical Reasoning",
+      "title": "Drone Waypoint Flight Path & Pythagorean Displacement",
+      "instruction": "An autonomous surveillance drone departs from Launch Station O and follows three successive straight-line flight legs:\n\nFlight Legs:\n1. Leg 1: Flies 15 km directly North to Waypoint Alpha.\n2. Leg 2: Makes a 90° right turn and flies 9 km directly East to Waypoint Bravo.\n3. Leg 3: Makes another 90° right turn and flies 3 km directly South to Final Waypoint Charlie.\n\nWhat is the shortest straight-line Euclidean distance (displacement) from Launch Station O to Final Waypoint Charlie?",
+      "options": [
+        "15 km",
+        "21 km",
+        "17 km",
+        "12 km"
+      ],
+      "correctIndex": 0,
+      "hint": "Calculate the net North-South displacement and East-West displacement, then apply the Pythagorean theorem.",
+      "explanation": "Net North displacement = 15 - 3 = 12 km North. Net East displacement = 9 km East. By the Pythagorean theorem: sqrt(12^2 + 9^2) = sqrt(144 + 81) = sqrt(225) = 15 km.",
+      "timeLimit": 180
+    },
+    {
+      "id": "v1_14",
+      "category": "C Programming",
+      "title": "Contiguous Array Pointer Offset Differential",
+      "instruction": "Trace pointer arithmetic on contiguous memory in C below. What value does printf(\"%d\", ans) display?",
+      "steps": [
+        "int arr[] = {10, 20, 30, 40, 50};",
+        "int *ptr = arr + 2;",
+        "int forward_val = *(ptr + 1);",
+        "int backward_val = *(ptr - 1);",
+        "int ans = forward_val - backward_val;",
+        "printf(\"%d\", ans);"
+      ],
+      "options": [
+        "20",
+        "10",
+        "30",
+        "0"
+      ],
+      "correctIndex": 0,
+      "hint": "ptr points to arr[2] (value 30). *(ptr + 1) is arr[3] and *(ptr - 1) is arr[1].",
+      "explanation": "ptr points to arr[2]. ptr + 1 references arr[3] (40). ptr - 1 references arr[1] (20). ans = 40 - 20 = 20.",
+      "timeLimit": 150
+    },
+    {
+      "id": "v1_15",
+      "category": "Python",
+      "title": "Dictionary Inversion & Filtered Key Lookup",
+      "instruction": "Trace the dictionary comprehension and fallback lookup below. What does print(result) display?",
+      "steps": [
+        "items = {\"a\": 2, \"b\": 3, \"c\": 4}",
+        "lookup = {v: k for k, v in items.items() if v % 2 == 0}",
+        "result = lookup.get(4, \"NA\") + lookup.get(3, \"NA\")",
+        "print(result)"
+      ],
+      "options": [
+        "\"cNA\"",
+        "\"cb\"",
+        "\"NA\"",
+        "\"c3\""
+      ],
+      "correctIndex": 0,
+      "hint": "Only even values (2 and 4) enter lookup: {2: 'a', 4: 'c'}. Key 3 is not found so get() returns 'NA'.",
+      "explanation": "lookup filters for even values (2 and 4), creating {2: 'a', 4: 'c'}. lookup.get(4) returns 'c'. lookup.get(3) fails to find key 3 and returns 'NA'. Concatenating 'c' + 'NA' produces 'cNA'.",
+      "timeLimit": 150
     }
   ],
   "round2": [
+    // 1 to 8: Original Set 1 Bugs
     {
       "id": "b1_1",
       "category": "C Programming",
@@ -270,9 +509,191 @@ const QUESTION_SET_1 = {
       "correctFixIndex": 3,
       "hint": "Python uses indentation to define code blocks inside functions.",
       "timeLimit": 160
+    },
+
+    // 9 to 16: Merged from Set 4 Bugs
+    {
+      "id": "b1_9",
+      "category": "C Programming",
+      "title": "Conditional Pass Status Checker",
+      "scenario": "The passing message prints unconditionally even when the score is below the threshold. Identify the defective line.",
+      "codeLines": [
+        "int score = 20;",
+        "if (score >= 50);",
+        "    printf(\"Passed\\n\");"
+      ],
+      "errorLineIndex": 1,
+      "errorExplanation": "A semicolon placed immediately after the if condition creates an empty statement, causing the following printf to run unconditionally.",
+      "fixOptions": [
+        "Remove the stray semicolon: 'if (score >= 50)'",
+        "Change score = 20 to score = 50",
+        "Add a semicolon after printf",
+        "Change 'printf' to 'scanf'"
+      ],
+      "correctFixIndex": 0,
+      "hint": "Does an if condition header in C end with a semicolon?",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_10",
+      "category": "Python",
+      "title": "Player Profile Registry",
+      "scenario": "The Python interpreter throws 'SyntaxError: invalid decimal literal'. Identify the line violating syntax rules.",
+      "codeLines": [
+        "total = 10",
+        "1st_name = \"Alex\"",
+        "print(1st_name)"
+      ],
+      "errorLineIndex": 1,
+      "errorExplanation": "In Python, variable names cannot start with a number. '1st_name' is an invalid identifier.",
+      "fixOptions": [
+        "Wrap 10 in quotes: '10'",
+        "Rename variable to start with a letter: 'first_name = \"Alex\"'",
+        "Add semicolons to every line",
+        "Change double quotes to single quotes"
+      ],
+      "correctFixIndex": 1,
+      "hint": "Can a variable name in Python start with a number?",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_11",
+      "category": "Basic HTML",
+      "title": "Dashboard Navigation Link",
+      "scenario": "The DOM parser encounters an unmatched closing tag during document tree construction. Identify the defective line.",
+      "codeLines": [
+        "<div class=\"nav\">",
+        "    <a href=\"/dashboard\">Dashboard</p>",
+        "</div>"
+      ],
+      "errorLineIndex": 1,
+      "errorExplanation": "The tag begins with <a> but ends with </p>. Closing tags must match their opening tag.",
+      "fixOptions": [
+        "Change 'div' to 'main'",
+        "Remove '/dashboard'",
+        "Match the closing tag: '<a href=\"/dashboard\">Dashboard</a>'",
+        "Change 'href' to 'src'"
+      ],
+      "correctFixIndex": 2,
+      "hint": "An opening <a> tag must be closed with </a>.",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_12",
+      "category": "C Programming",
+      "title": "Numeric Input Prompt",
+      "scenario": "The program crashes with a segmentation fault immediately upon terminal input submission. Identify the defective line.",
+      "codeLines": [
+        "int num;",
+        "printf(\"Enter a number: \");",
+        "scanf(\"%d\", num);"
+      ],
+      "errorLineIndex": 2,
+      "errorExplanation": "scanf expects a memory address to write into. Passing 'num' instead of '&num' causes a memory fault.",
+      "fixOptions": [
+        "Change '%d' to '%f'",
+        "Change 'int num;' to 'char num;'",
+        "Remove the printf prompt",
+        "Pass address with ampersand: 'scanf(\"%d\", &num);'"
+      ],
+      "correctFixIndex": 3,
+      "hint": "What operator gives the address of a variable in C?",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_13",
+      "category": "Python",
+      "title": "List Ordering Routine",
+      "scenario": "The list data unexpectedly becomes None, causing subsequent length queries to fail. Identify the defective line.",
+      "codeLines": [
+        "nums = [3, 1, 2]",
+        "nums = nums.sort()",
+        "print(len(nums))"
+      ],
+      "errorLineIndex": 1,
+      "errorExplanation": "list.sort() mutates the list in-place and returns None. Reassigning 'nums = nums.sort()' destroys the list.",
+      "fixOptions": [
+        "Call sort without reassignment: 'nums.sort()' or 'nums = sorted(nums)'",
+        "Change nums = [3, 1, 2] to a string",
+        "Remove line 3",
+        "Change len(nums) to nums.size()"
+      ],
+      "correctFixIndex": 0,
+      "hint": "Does list.sort() return a new list, or does it sort in-place and return None?",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_14",
+      "category": "Basic HTML",
+      "title": "User Roster Table Grid",
+      "scenario": "The tabular data structure fails to render legitimate cell contents in the second row. Identify the defective line.",
+      "codeLines": [
+        "<tr>",
+        "    <th>Name</th>",
+        "</tr>",
+        "<tr>",
+        "    <tc>Alice</tc>",
+        "</tr>"
+      ],
+      "errorLineIndex": 4,
+      "errorExplanation": "<tc> is not a standard HTML tag. Standard table data cells are created with <td>.",
+      "fixOptions": [
+        "Change <th> to <h1>",
+        "Replace '<tc>' with standard cell tag: '<td>Alice</td>'",
+        "Remove all <tr> tags",
+        "Change 'Alice' to 'Name'"
+      ],
+      "correctFixIndex": 1,
+      "hint": "What is the standard HTML tag for a table data cell?",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_15",
+      "category": "C Programming",
+      "title": "Running Total Counter",
+      "scenario": "The computed total outputs unexpected random or garbage numbers upon execution. Identify the defective line.",
+      "codeLines": [
+        "int total;",
+        "total += 10;",
+        "printf(\"%d\\n\", total);"
+      ],
+      "errorLineIndex": 0,
+      "errorExplanation": "Local variables in C contain unpredictable garbage values until explicitly initialized.",
+      "fixOptions": [
+        "Remove line 2",
+        "Change 'total += 10;' to 'total -= 10;'",
+        "Initialize total to zero: 'int total = 0;'",
+        "Change printf to scanf"
+      ],
+      "correctFixIndex": 2,
+      "hint": "Local variables in C are not automatically initialized to zero.",
+      "timeLimit": 160
+    },
+    {
+      "id": "b1_16",
+      "category": "Python",
+      "title": "User Role Authorization",
+      "scenario": "The server script crashes with 'KeyError: \"role\"' when processing standard user records. Identify the defective line.",
+      "codeLines": [
+        "user = {\"name\": \"Jordan\"}",
+        "role = user[\"role\"]",
+        "print(role)"
+      ],
+      "errorLineIndex": 1,
+      "errorExplanation": "Direct dictionary indexing dict[key] raises a KeyError if the key is not in the dictionary. Using user.get(\"role\", \"default\") is safe.",
+      "fixOptions": [
+        "Change user = {...} to a list",
+        "Enclose role in curly brackets",
+        "Remove line 3",
+        "Use safe get method: 'role = user.get(\"role\", \"Guest\")'"
+      ],
+      "correctFixIndex": 3,
+      "hint": "What dictionary method safely retrieves a value without crashing if the key is missing?",
+      "timeLimit": 160
     }
   ],
   "round3": [
+    // 1 to 8: Original Set 1 Buzzer Blitz
     {
       "id": "z1_1",
       "category": "Python",
@@ -399,6 +820,136 @@ const QUESTION_SET_1 = {
       "hint": "The minute hand points to 12 and the hour hand points to 3 (a right angle).",
       "explanation": "Each hour tick represents 30 degrees (360 / 12). At 3:00, the hands are 3 marks apart: 3 * 30 = 90 degrees.",
       "readTime": 45,
+      "buzzTime": 10
+    },
+
+    // 9 to 16: Merged from Set 4 Buzzer Blitz
+    {
+      "id": "z1_9",
+      "category": "Python",
+      "question": "In Python, which function converts a string or number into an integer data type?",
+      "options": [
+        "to_int()",
+        "int()",
+        "parse_int()",
+        "number()"
+      ],
+      "correctIndex": 1,
+      "hint": "It shares its name with the standard integer type keyword.",
+      "explanation": "int() converts valid string representations or floats into standard integer values.",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_10",
+      "category": "C Programming",
+      "question": "What is the return type of the main() function in standard C?",
+      "options": [
+        "void",
+        "char",
+        "int",
+        "float"
+      ],
+      "correctIndex": 2,
+      "hint": "main() returns an exit status code (0 for success) back to the OS.",
+      "explanation": "In standard modern C (C99/C11), main() must return an integer ('int').",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_11",
+      "category": "Basic HTML",
+      "question": "Which HTML tag is used to create an ordered (numbered) list?",
+      "options": [
+        "<ul>",
+        "<ol>",
+        "<list>",
+        "<nl>"
+      ],
+      "correctIndex": 1,
+      "hint": "'ol' stands for Ordered List.",
+      "explanation": "<ol> creates an ordered (numbered) list, whereas <ul> creates an unordered (bulleted) list.",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_12",
+      "category": "Logical Reasoning",
+      "question": "Which of the following years was a Leap Year?",
+      "options": [
+        "1900",
+        "2000",
+        "2100",
+        "2018"
+      ],
+      "correctIndex": 1,
+      "hint": "Century years are leap years only if divisible by 400.",
+      "explanation": "Century years must be divisible by 400. 2000 is divisible by 400 (Leap Year), whereas 1900 and 2100 are not.",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_13",
+      "category": "Python",
+      "question": "In Python, which keyword is used to handle exceptions caught in a 'try' block?",
+      "options": [
+        "catch",
+        "except",
+        "finally",
+        "handle"
+      ],
+      "correctIndex": 1,
+      "hint": "Unlike Java and C++, Python uses 'try ... except'.",
+      "explanation": "Python uses the 'except' keyword to catch and handle exceptions originating from a try block.",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_14",
+      "category": "C Programming",
+      "question": "In C, which unary operator returns the size in bytes of a data type or variable?",
+      "options": [
+        "bytes()",
+        "sizeof",
+        "length",
+        "size"
+      ],
+      "correctIndex": 1,
+      "hint": "It is a compile-time operator with 'size' and 'of' combined.",
+      "explanation": "'sizeof' is a compile-time operator in C that returns the memory footprint size in bytes.",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_15",
+      "category": "Basic HTML",
+      "question": "Which HTML tag is used to embed client-side JavaScript code into a webpage?",
+      "options": [
+        "<javascript>",
+        "<js>",
+        "<script>",
+        "<code>"
+      ],
+      "correctIndex": 2,
+      "hint": "The tag name is <script>.",
+      "explanation": "The <script> tag is standard for embedding or linking executable JavaScript code.",
+      "readTime": 45,
+      "buzzTime": 10
+    },
+    {
+      "id": "z1_16",
+      "category": "Logical Reasoning",
+      "question": "If SOUTH-EAST becomes NORTH, and NORTH-EAST becomes WEST, what will WEST become?",
+      "options": [
+        "SOUTH-EAST",
+        "SOUTH-WEST",
+        "NORTH-WEST",
+        "NORTH-EAST"
+      ],
+      "correctIndex": 0,
+      "hint": "Every direction is rotated 135 degrees counter-clockwise.",
+      "explanation": "Rotating 135 degrees counter-clockwise: South-East (135°) becomes North (0°). Rotating West (270°) by 135° counter-clockwise leads to 135° (South-East).",
+      "readTime": 50,
       "buzzTime": 10
     }
   ]

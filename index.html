@@ -78,7 +78,7 @@
     <!-- In-Game Countdown Badge -->
     <div class="timer-tracker" id="hud-timer-badge">
       <span class="timer-label">TIME</span>
-      <span id="round-timer-val" class="timer-val">--</span><span class="timer-sec">s</span>
+      <span id="round-timer-val" class="timer-val" style="min-width: 56px; text-align: center;">--:--</span>
     </div>
   </nav>
 
@@ -118,14 +118,21 @@
               <select id="question-set-select" class="cyber-text-input cyber-select-input" aria-label="Question Set">
                 <option value="set1" selected>SET 1 (ALPHA)</option>
                 <option value="set2">SET 2 (BETA)</option>
-                <option value="set3">SET 3 (GAMMA)</option>
-                <option value="set4">SET 4 (DELTA)</option>
               </select>
             </div>
           </div>
           <button class="neon-btn btn-primary pulse-btn" id="btn-start-run">
             ENTER ARENA ▶
           </button>
+        </div>
+
+        <!-- Live Quiz Gatekeeper Alert Box -->
+        <div id="quiz-gatekeeper-alert" class="quiz-locked-alert hidden" style="margin-top: 14px; padding: 12px 18px; border-radius: 6px; background: rgba(255, 0, 60, 0.12); border: 1px solid #ff003c; color: #fff; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.2rem;">⚠️</span>
+          <div>
+            <strong style="color: #ff003c; display: block; font-family: var(--font-mono);">ADMIN HAS NOT STARTED THE QUIZ YET</strong>
+            <span style="color: #ccc; font-size: 0.85rem;">Please standby on this screen. The arena will unlock the instant the Admin starts the quiz.</span>
+          </div>
         </div>
       </div>
 
@@ -317,11 +324,9 @@
   <!-- Scripts -->
   <script src="js/audio.js?v=5.2"></script>
   <script src="js/particles.js?v=5.2"></script>
-  <script src="js/questions-set1.js?v=5.2"></script>
-  <script src="js/questions-set2.js?v=5.2"></script>
-  <script src="js/questions-set3.js?v=5.2"></script>
-  <script src="js/questions-set4.js?v=5.2"></script>
-  <script src="js/questions.js?v=5.2"></script>
+  <script src="js/questions-set1.js?v=6.0"></script>
+  <script src="js/questions-set2.js?v=6.0"></script>
+  <script src="js/questions.js?v=6.0"></script>
   <script src="js/store.js?v=5.2"></script>
   <script src="js/rounds/round1-visual.js?v=5.2"></script>
   <script src="js/rounds/round2-bugs.js?v=5.2"></script>

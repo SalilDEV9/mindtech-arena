@@ -22,10 +22,12 @@ class ArenaDashboard {
     this.currentQuestionIndex = 0;
     this.activeBuzzerQueue = [];
     this.socket = null;
+    this.isQuizStarted = false;
 
     this.initAudio();
     this.initAuth();
     this.initBroadcastChannel();
+    this.initQuizGatekeeper();
     this.initBuzzerControls();
     this.bindEvents();
 
@@ -115,12 +117,12 @@ class ArenaDashboard {
             if (data.success) authSuccess = true;
           }
         } catch(err) {
-          // Offline fallback
-          if (password === 'Karunya2007') authSuccess = true;
+          // Login fails closed if the server is unavailable
+          /* Client-side bypass disabled: only the backend validates admin login. */
         }
 
-        // Direct guarantee check
-        if (password === 'Karunya2007') authSuccess = true;
+        // Never grant access based on a password stored in browser code
+        /* Client-side bypass disabled: only the backend validates admin login. */
 
         if (authSuccess) {
           setAuthState(true);
@@ -188,11 +190,84 @@ class ArenaDashboard {
           }
         });
 
+        this.socket.on('quiz:status', (data) => {
+          if (data && typeof data.quizStarted === 'boolean') {
+            this.updateQuizStatusUI(data.quizStarted);
+          }
+        });
+
         this.socket.on('score:updated', () => {
           this.fetchScores();
         });
       } catch (e) {
         console.warn('Socket initialization error:', e);
+      }
+    }
+  }
+
+  initQuizGatekeeper() {
+    const toggleBtn = document.getElementById('btn-toggle-quiz');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', async () => {
+        const nextState = !this.isQuizStarted;
+        if (nextState) {
+          if (this.socket) this.socket.emit('admin:start_quiz');
+          try {
+            await fetch('/api/quiz/start', { method: 'POST' });
+          } catch(e) {}
+          this.updateQuizStatusUI(true);
+          this.playBeep(980, 0.25);
+          this.showToast('🚀 QUIZ LAUNCHED! TEAMS CAN NOW ENTER');
+        } else {
+          if (this.socket) this.socket.emit('admin:stop_quiz');
+          try {
+            await fetch('/api/quiz/stop', { method: 'POST' });
+          } catch(e) {}
+          this.updateQuizStatusUI(false);
+          this.playBeep(350, 0.2);
+          this.showToast('⏸️ QUIZ LOCKED / PAUSED');
+        }
+      });
+    }
+
+    // Initial status check
+    fetch('/api/quiz/status')
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.quizStarted === 'boolean') {
+          this.updateQuizStatusUI(data.quizStarted);
+        }
+      })
+      .catch(() => {});
+  }
+
+  updateQuizStatusUI(isStarted) {
+    this.isQuizStarted = !!isStarted;
+    const badge = document.getElementById('quiz-status-badge');
+    const dot = document.getElementById('quiz-live-dot');
+    const btn = document.getElementById('btn-toggle-quiz');
+
+    if (this.isQuizStarted) {
+      if (badge) {
+        badge.textContent = 'QUIZ IS LIVE (UNLOCKED)';
+        badge.style.borderColor = '#00ff88';
+        badge.style.color = '#00ff88';
+      }
+      if (dot) dot.style.background = '#00ff88';
+      if (btn) {
+        btn.innerHTML = '<span>⏸️ PAUSE / LOCK QUIZ</span>';
+        btn.style.background = '#333344';
+      }
+    } else {
+      if (badge) {
+        badge.textContent = 'QUIZ LOCKED (NOT STARTED)';
+        badge.style.borderColor = '#ff003c';
+        badge.style.color = '#ff003c';
+      }
+      if (dot) dot.style.background = '#ff003c';
+      if (btn) {
+        btn.innerHTML = '<span>🚀 START QUIZ</span>';
+        btn.style.background = '#ff003c';
       }
     }
   }
@@ -204,14 +279,18 @@ class ArenaDashboard {
     const toggleAnswerBtn = document.getElementById('btn-toggle-answer');
     const clearBuzzerBtn = document.getElementById('btn-clear-buzzer');
 
-    // Populate Question # dropdown
+    // Populate Question # dropdown dynamically
     const populateQuestionDropdown = () => {
       if (!qSelect) return;
       qSelect.innerHTML = '';
-      for (let i = 0; i < 8; i++) {
+      const sets = (typeof window !== 'undefined' && window.QUESTION_SETS) ? window.QUESTION_SETS : {};
+      const activeSet = sets[this.currentQuestionSet] || window.QUESTION_SET_1 || null;
+      const count = (activeSet && Array.isArray(activeSet.round3)) ? activeSet.round3.length : 16;
+      for (let i = 0; i < count; i++) {
         const opt = document.createElement('option');
         opt.value = i;
         opt.textContent = `Question ${i + 1}`;
+        if (i === this.currentQuestionIndex) opt.selected = true;
         qSelect.appendChild(opt);
       }
     };
@@ -220,6 +299,8 @@ class ArenaDashboard {
     if (setSelect) {
       setSelect.addEventListener('change', (e) => {
         this.currentQuestionSet = e.target.value;
+        this.currentQuestionIndex = 0;
+        populateQuestionDropdown();
         this.updateQuestionPreview();
       });
     }
@@ -281,8 +362,10 @@ class ArenaDashboard {
     const toggleBtn = document.getElementById('btn-toggle-answer');
     const statusBadge = document.getElementById('admin-q-status-badge');
 
-    if (catEl) catEl.textContent = q.category || 'TECHNICAL';
-    if (numEl) numEl.textContent = `QUESTION ${this.currentQuestionIndex + 1} / 8`;
+    const sets = (typeof window !== 'undefined' && window.QUESTION_SETS) ? window.QUESTION_SETS : {};
+    const activeSet = sets[this.currentQuestionSet] || window.QUESTION_SET_1 || null;
+    const totalQ = (activeSet && Array.isArray(activeSet.round3)) ? activeSet.round3.length : 16;
+    if (numEl) numEl.textContent = `QUESTION ${this.currentQuestionIndex + 1} / ${totalQ}`;
     if (textEl) textEl.textContent = q.question;
 
     const answerStr = q.options ? `${q.options[q.correctIndex]}` : (q.answer || 'Correct Answer');

@@ -9,6 +9,7 @@ class MindmindGame {
     this.teamId = localStorage.getItem('mindmind_team_id') || 'TM-101';
     this.playerName = localStorage.getItem('mindmind_player') || 'CYBER_OPERATOR';
     this.questionSet = localStorage.getItem('mindmind_question_set') || 'set1';
+    this.isQuizStarted = false;
 
     this.round1 = new Round1Visual(this);
     this.round2 = new Round2Bugs(this);
@@ -21,6 +22,9 @@ class MindmindGame {
     try {
       localStorage.removeItem('mindmind_active_session');
     } catch (e) {}
+
+    this.initSocket();
+    this.checkInitialQuizStatus();
 
     // Populate stored team ID & player name if available
     const teamInput = document.getElementById('team-id-input');
@@ -176,11 +180,27 @@ class MindmindGame {
   }
 
   initSocket() {
-    if (typeof io !== 'undefined') {
+    if (typeof io !== 'undefined' && !this.socket) {
       try {
         this.socket = io();
         this.socket.on('connect', () => {
           this.socket.emit('team:join', { teamId: this.teamId });
+        });
+        this.socket.on('quiz:status', (data) => {
+          this.isQuizStarted = !!(data && data.quizStarted);
+          this.updateQuizAlertUI();
+        });
+        this.socket.on('quiz:started', () => {
+          this.isQuizStarted = true;
+          this.updateQuizAlertUI();
+          if (window.soundEngine) window.soundEngine.playSuccess();
+          if (window.armoryStore) {
+            window.armoryStore.showFloatingHUDNotification("TOURNAMENT STARTED BY ADMIN! YOU MAY NOW ENTER ARENA");
+          }
+        });
+        this.socket.on('quiz:stopped', () => {
+          this.isQuizStarted = false;
+          this.updateQuizAlertUI();
         });
         this.socket.on('score:updated', (data) => {
           if (data && data.teamId === this.teamId && typeof data.score === 'number') {
@@ -194,8 +214,55 @@ class MindmindGame {
     }
   }
 
+  async checkInitialQuizStatus() {
+    try {
+      const res = await fetch('/api/quiz/status');
+      if (res.ok) {
+        const data = await res.json();
+        this.isQuizStarted = !!(data && data.quizStarted);
+        this.updateQuizAlertUI();
+      }
+    } catch(e) {}
+  }
+
+  updateQuizAlertUI() {
+    const alertBox = document.getElementById('quiz-gatekeeper-alert');
+    if (!alertBox) return;
+    if (this.isQuizStarted) {
+      alertBox.classList.add('hidden');
+    }
+  }
+
+  showQuizLockedMessage() {
+    const alertBox = document.getElementById('quiz-gatekeeper-alert');
+    if (alertBox) {
+      alertBox.classList.remove('hidden');
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (window.soundEngine) window.soundEngine.playError();
+    if (window.armoryStore) {
+      window.armoryStore.showFloatingHUDNotification("ACCESS LOCKED: Admin didn't start the quiz yet.");
+    }
+  }
+
   async startArena() {
     if (this.currentRound !== 0) return;
+
+    // Gatekeeper Validation: Admin must start the quiz first
+    if (!this.isQuizStarted) {
+      try {
+        const res = await fetch('/api/quiz/status');
+        if (res.ok) {
+          const data = await res.json();
+          this.isQuizStarted = !!(data && data.quizStarted);
+        }
+      } catch(e) {}
+    }
+
+    if (!this.isQuizStarted) {
+      this.showQuizLockedMessage();
+      return;
+    }
 
     const teamInput = document.getElementById('team-id-input');
     if (teamInput && teamInput.value.trim()) {
