@@ -24,7 +24,7 @@ class ArenaDashboard {
     this.socket = null;
     this.isQuizStarted = false;
 
-    this.initAudio({ transports: ['websocket'], upgrade: false, timeout: 10000 });
+    this.initAudio();
     this.initAuth();
     this.initBroadcastChannel();
     this.initQuizGatekeeper();
@@ -38,7 +38,7 @@ class ArenaDashboard {
     this.updateLastSyncTimer();
   }
 
-  initAudio({ transports: ['websocket'], upgrade: false, timeout: 10000 }) {
+  initAudio() {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (AudioContext) {
