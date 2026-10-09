@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <!-- Small Red & Black Precision Disabled Cursor -->
+  <circle cx="8" cy="8" r="6.5" fill="#050507" stroke="#ff003c" stroke-width="1.5"/>
+  <line x1="3.5" y1="3.5" x2="12.5" y2="12.5" stroke="#ff003c" stroke-width="1.5"/>
+</svg>

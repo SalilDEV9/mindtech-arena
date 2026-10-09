@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MINDMIND // Leaderboard</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css?v=5.2">
+  <link rel="stylesheet" href="css/components.css?v=5.2">
+  <link rel="stylesheet" href="css/dashboard.css?v=5.2">
+</head>
+<body class="cyber-theme">
+  <!-- Drifting Cyberpunk Particle Matrix Canvas -->
+  <canvas id="cyber-particles-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; display: block;"></canvas>
+
+  <!-- Authentication Lock Screen (macOS Squircle Window) -->
+  <div id="dash-auth-overlay" class="dash-auth-overlay">
+    <div class="dash-auth-modal glass-panel">
+      <div class="mac-window-bar">
+        <div class="mac-traffic-lights">
+          <a href="index.html" class="mac-dot mac-close" title="Exit to Arena"></a>
+          <span class="mac-dot mac-minimize"></span>
+          <span class="mac-dot mac-zoom"></span>
+        </div>
+        <span class="dash-auth-bar-title">AUTHENTICATION // DASHBOARD</span>
+      </div>
+
+      <div class="dash-auth-body">
+        <div class="dash-auth-header">
+          <div class="dash-auth-logo">MIND//MIND</div>
+          <p class="dash-auth-subtitle">ADMIN COMMAND PORTAL // ENTER PASSWORD</p>
+        </div>
+
+        <form id="dash-auth-form" class="dash-auth-form" autocomplete="off">
+          <div class="dash-input-group">
+            <label for="dash-login-pass" class="dash-input-label">ADMIN PASSWORD</label>
+            <input 
+              type="password" 
+              id="dash-login-pass" 
+              class="dash-login-input" 
+              placeholder="Enter admin password..." 
+              autocomplete="current-password" 
+              required
+              autofocus
+            >
+          </div>
+
+          <div id="dash-auth-error" class="dash-auth-error hidden"></div>
+
+          <button type="submit" id="dash-auth-submit-btn" class="dash-btn btn-auth-submit">
+            <span>ACCESS ADMIN CONSOLE ▶</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-container" id="dashboard-main-container">
+    <!-- Top Navigation Header -->
+    <header class="dashboard-header">
+      <div class="dash-brand-block">
+        <div class="mac-traffic-lights">
+          <span class="mac-dot mac-close" title="Close"></span>
+          <span class="mac-dot mac-minimize" title="Minimize"></span>
+          <span class="mac-dot mac-zoom" title="Expand"></span>
+        </div>
+        <div class="brand-text-col">
+          <div class="brand-main-row">
+            <h1 class="dashboard-brand-title">MINDMIND</h1>
+            <div class="stream-status-badge">
+              <span class="stream-pulse-dot" id="connection-indicator"></span>
+              <span id="last-sync-time">LIVE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="dashboard-actions">
+        <button id="toggle-auto-refresh-btn" class="dash-btn active" title="Toggle Auto-Refresh">
+          <span>LIVE</span>
+        </button>
+        <button id="manual-refresh-btn" class="dash-btn" title="Refresh">
+          <span>SYNC</span>
+        </button>
+        <button id="toggle-fullscreen-btn" class="dash-btn btn-outline" title="Fullscreen">
+          <span>FULLSCREEN</span>
+        </button>
+        <button id="toggle-sound-btn" class="dash-btn" title="Toggle Sound">
+          <span>AUDIO</span>
+        </button>
+        <a href="index.html" class="dash-btn" target="_blank" title="Arena">
+          <span>ARENA</span>
+        </a>
+        <button id="dash-logout-btn" class="dash-btn btn-outline" title="Logout">
+          <span>LOGOUT</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Aesthetic Hero Editorial Statement -->
+    <section class="dash-hero-statement">
+      <div class="hero-badge-row">
+        <div class="hero-editorial-pill">
+          <span class="pulse-radar-dot"></span>
+          <span class="hero-pill-text">CHAMPIONSHIP MATRIX // LIVE TELEMETRY</span>
+        </div>
+      </div>
+      <h1 class="hero-dramatic-headline">
+        SPEED IS THE CURRENCY.<br>
+        <span class="crimson-focus">PRECISION IS THE CROWN.</span>
+      </h1>
+      <p class="hero-editorial-sub">
+        Real-time telemetry synchronization tracking execution velocity, score multipliers, and stage mastery across all competing squads.
+      </p>
+    </section>
+
+    <!-- Borderless Editorial Stat Strip (Replaces Crowded Box Grid) -->
+    <section class="dash-stat-strip" aria-label="Key Performance Indicators">
+      <div class="stat-col">
+        <span class="stat-micro-label">ACTIVE SQUADS</span>
+        <div class="stat-huge-num highlight-white" id="metric-total-teams">0</div>
+        <span class="stat-caption">Registered Contenders</span>
+      </div>
+
+      <div class="stat-col featured-stat">
+        <span class="stat-micro-label">PEAK SCORE</span>
+        <div class="stat-huge-num highlight-red" id="metric-peak-score">0</div>
+        <span class="stat-caption">Tournament Record</span>
+      </div>
+
+      <div class="stat-col">
+        <span class="stat-micro-label">SCORE AVERAGE</span>
+        <div class="stat-huge-num" id="metric-avg-score">0</div>
+        <span class="stat-caption">Field Median</span>
+      </div>
+
+      <div class="stat-col">
+        <span class="stat-micro-label">MAX STAGE CLEARED</span>
+        <div class="stat-huge-num highlight-red" id="metric-peak-stage">STAGE 1</div>
+        <span class="stat-caption">Tournament Depth</span>
+      </div>
+    </section>
+
+    <!-- Attention-Grabbing Live Continuous Cyber Marquee -->
+    <div class="dash-marquee-bar" aria-hidden="true">
+      <div class="marquee-track">
+        <span>⚡ LIVE ARENA TELEMETRY</span>
+        <span class="marquee-sep">◆</span>
+        <span>STAGE 01 // VISUAL DECRYPTION MATRIX</span>
+        <span class="marquee-sep">◆</span>
+        <span>STAGE 02 // SYNTAX DEBUG PROTOCOL</span>
+        <span class="marquee-sep">◆</span>
+        <span>STAGE 03 // BLITZ BUZZER SHOWDOWN</span>
+        <span class="marquee-sep">◆</span>
+        <span>VELOCITY MULTIPLIER // UP TO 3.0× BONUS</span>
+        <span class="marquee-sep">◆</span>
+        <span>AUTONOMOUS LEADERBOARD SYNC</span>
+        <span class="marquee-sep">◆</span>
+        <span>MILLISECOND TIMESTAMP PRECISION</span>
+        <span class="marquee-sep">◆</span>
+        <span>⚡ LIVE ARENA TELEMETRY</span>
+        <span class="marquee-sep">◆</span>
+        <span>STAGE 01 // VISUAL DECRYPTION MATRIX</span>
+        <span class="marquee-sep">◆</span>
+        <span>STAGE 02 // SYNTAX DEBUG PROTOCOL</span>
+        <span class="marquee-sep">◆</span>
+        <span>STAGE 03 // BLITZ BUZZER SHOWDOWN</span>
+        <span class="marquee-sep">◆</span>
+        <span>VELOCITY MULTIPLIER // UP TO 3.0× BONUS</span>
+        <span class="marquee-sep">◆</span>
+        <span>AUTONOMOUS LEADERBOARD SYNC</span>
+        <span class="marquee-sep">◆</span>
+        <span>MILLISECOND TIMESTAMP PRECISION</span>
+        <span class="marquee-sep">◆</span>
+      </div>
+    </div>
+
+    <!-- Top 3 Podium (Sculptural, Open Pedestal) -->
+    <section class="podium-section">
+      <div class="podium-grid">
+        <!-- 2nd Place -->
+        <div class="podium-card rank-2" id="podium-rank-2"></div>
+
+        <!-- 1st Place -->
+        <div class="podium-card rank-1" id="podium-rank-1"></div>
+
+        <!-- 3rd Place -->
+        <div class="podium-card rank-3" id="podium-rank-3"></div>
+      </div>
+    </section>
+
+    <!-- Attention-Grabbing Section Interlude -->
+    <section class="dash-interlude-banner">
+      <div class="interlude-decor-line"></div>
+      <div class="interlude-content">
+        <span class="interlude-tag">STANDINGS ARCHIVE // LIVE TELEMETRY</span>
+        <h3 class="interlude-heading">EVERY MILLISECOND MATTERS</h3>
+        <p class="interlude-sub">Instant rank recalculation based on score velocity, accuracy streak, and millisecond timestamp precedence</p>
+      </div>
+      <div class="interlude-decor-line"></div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- ROUND 3: ADMIN BUZZER COMMAND CONSOLE          -->
+    <!-- ============================================== -->
+    <section class="admin-buzzer-section glass-panel" id="admin-buzzer-section" style="margin-bottom: 28px;">
+      <div class="mac-window-bar">
+        <div class="mac-traffic-lights">
+          <span class="mac-dot mac-close"></span>
+          <span class="mac-dot mac-minimize"></span>
+          <span class="mac-dot mac-zoom"></span>
+        </div>
+        <span class="mac-table-title">ROUND 3 // BUZZER COMMAND CONSOLE</span>
+        <span class="mac-sync-indicator" id="buzzer-sync-status">SOCKET: CONNECTING</span>
+      </div>
+
+      <div class="buzzer-admin-grid">
+        <!-- Left: Question Dispatcher & Secret Answer Box -->
+        <div class="buzzer-control-box">
+          <div class="control-header-row">
+            <div class="selector-group">
+              <label for="admin-set-select">QUESTION SET:</label>
+              <select id="admin-set-select" class="cyber-select-input">
+                <option value="set1" selected>SET 1 (ALPHA)</option>
+                <option value="set2">SET 2 (BETA)</option>
+                <option value="set3">SET 3 (GAMMA)</option>
+                <option value="set4">SET 4 (DELTA)</option>
+              </select>
+            </div>
+            <div class="selector-group">
+              <label for="admin-q-select">QUESTION #:</label>
+              <select id="admin-q-select" class="cyber-select-input">
+                <!-- Dynamically populated 1 to 8 -->
+              </select>
+            </div>
+          </div>
+
+          <!-- Question Display Preview Card -->
+          <div class="admin-q-preview-card">
+            <div class="q-meta-strip">
+              <span class="cyber-badge" id="admin-q-category">PYTHON</span>
+              <span class="cyber-badge" id="admin-q-num">QUESTION 1 / 8</span>
+              <span class="cyber-badge" id="admin-q-status-badge">READY TO BROADCAST</span>
+            </div>
+            <h3 class="admin-q-text" id="admin-q-text">Loading question...</h3>
+            
+            <!-- Secret Answer Vault: Hidden until Admin clicks "SHOW ANSWER" -->
+            <div class="admin-answer-vault hidden" id="admin-answer-vault">
+              <div class="vault-label">👁️ SECRET ANSWER & EXPLANATION (ADMIN ONLY):</div>
+              <div class="vault-answer-text" id="admin-correct-answer">--</div>
+              <div class="vault-explanation-text" id="admin-answer-explanation">--</div>
+            </div>
+          </div>
+
+          <!-- Command Trigger Buttons -->
+          <div class="admin-action-btn-row">
+            <button id="btn-broadcast-question" class="dash-btn btn-primary pulse-btn" style="background: var(--neon-red); color: #fff; font-weight: 700;">
+              ⚡ DISPLAY QUESTION TO TEAMS
+            </button>
+            <button id="btn-toggle-answer" class="dash-btn">
+              👁️ SHOW ANSWER
+            </button>
+            <button id="btn-clear-buzzer" class="dash-btn btn-outline">
+              🔄 CLEAR / RESET
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Live Ascending Buzzer Queue -->
+        <div class="buzzer-queue-box">
+          <div class="queue-header">
+            <h4>LIVE BUZZER REACTION QUEUE</h4>
+            <span class="queue-sort-badge">SORTED ASCENDING (FASTEST FIRST)</span>
+          </div>
+
+          <div class="buzzer-queue-list" id="buzzer-queue-list">
+            <div class="queue-empty-state">
+              <span class="empty-icon">⏱</span>
+              <p>NO BUZZES RECORDED YET</p>
+              <small>Click "DISPLAY QUESTION TO TEAMS" to activate candidate buzzers.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Leaderboard Table -->
+    <main class="table-panel">
+      <div class="mac-window-bar">
+        <div class="mac-traffic-lights">
+          <span class="mac-dot mac-close"></span>
+          <span class="mac-dot mac-minimize"></span>
+          <span class="mac-dot mac-zoom"></span>
+        </div>
+        <span class="mac-table-title">STANDINGS_LEADERBOARD.LOG // SQUAD PERFORMANCE</span>
+        <span class="mac-sync-indicator">2.5s SYNC</span>
+      </div>
+
+      <div class="table-toolbar">
+        <div class="search-box-wrap">
+          <span class="search-icon-prefix">⌕</span>
+          <input type="text" id="dash-search" class="dash-search-input" placeholder="Filter by Squad Name or Team ID...">
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button id="export-json-btn" class="dash-btn" title="Download JSON">
+            <span>EXPORT JSON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="dash-table-wrap">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th style="width: 75px;">RANK</th>
+              <th style="width: 140px;">TEAM ID</th>
+              <th>SQUAD NAME</th>
+              <th style="width: 280px;">SCORE PERFORMANCE</th>
+              <th style="width: 150px;">TIER</th>
+              <th style="width: 120px;">LAST PING</th>
+            </tr>
+          </thead>
+          <tbody id="dash-table-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Actions -->
+      <footer class="admin-drawer">
+        <div class="admin-drawer-actions" style="margin-left: auto;">
+          <button id="admin-inject-demo-btn" class="dash-btn btn-outline">
+            <span>DEMO TEAMS</span>
+          </button>
+          <button id="admin-reset-btn" class="dash-btn">
+            <span>RESET</span>
+          </button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="dash-toast" class="dash-toast"></div>
+
+  <!-- Socket.io Real-Time Client (with offline server fallback) -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    if (typeof io === 'undefined') {
+      document.write('<script src="/socket.io/socket.io.js"><\/script>');
+    }
+  </script>
+
+  <!-- Question Sets for Admin Preview -->
+  <script src="js/questions-set1.js?v=5.2"></script>
+  <script src="js/questions-set2.js?v=5.2"></script>
+  <script src="js/questions-set3.js?v=5.2"></script>
+  <script src="js/questions-set4.js?v=5.2"></script>
+  <script src="js/questions.js?v=5.2"></script>
+
+  <!-- Scripts -->
+  <script src="js/particles.js?v=5.2"></script>
+  <script src="js/dashboard.js?v=5.2"></script>
+</body>
+</html>

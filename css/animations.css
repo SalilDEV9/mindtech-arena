@@ -1,0 +1,161 @@
+/**
+ * Cyberpunk Animations & CRT Scanlines
+ */
+
+/* CRT Scanlines Overlay */
+.crt-scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 60, 0.01),
+    rgba(255, 255, 255, 0.01),
+    rgba(255, 0, 60, 0.01)
+  );
+  background-size: 100% 3px, 6px 100%;
+  opacity: 0.7;
+}
+
+/* CRT Edge Vignette */
+.crt-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 998;
+  background: radial-gradient(
+    circle at center,
+    transparent 60%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+/* Screen Buzzer Flash Shockwave */
+.screen-buzzer-flash {
+  animation: buzzerStrobe 0.35s ease-out;
+}
+
+@keyframes buzzerStrobe {
+  0% {
+    filter: brightness(1.7) contrast(1.4) drop-shadow(0 0 40px #ff003c);
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 20px #ff003c);
+  }
+  100% {
+    filter: none;
+  }
+}
+
+/* Fade & Slide In Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Urgent Countdown Timer Pulse */
+.urgent-pulse {
+  color: var(--neon-red-bright) !important;
+  animation: timerBlink 0.5s infinite alternate;
+}
+
+@keyframes timerBlink {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.15); opacity: 0.6; text-shadow: 0 0 12px var(--neon-red); }
+}
+
+/* Floating Alerts Animation */
+.animate-slide-up {
+  animation: alertSlideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes alertSlideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Score Animations */
+@keyframes floatUpFade {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
+
+@keyframes floatDownFade {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(30px); }
+}
+
+/* Neon Pulse Buttons */
+.pulse-btn {
+  animation: pulseGlow 2.5s infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 0, 60, 0.85), inset 0 0 10px rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* Buzzer Pulse */
+@keyframes buzzerPulse {
+  0% {
+    box-shadow: 0 0 30px rgba(255, 0, 60, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 60px rgba(255, 0, 60, 1);
+  }
+}
+
+/* Critical Rush Buzzer Timer */
+@keyframes criticalPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.6; }
+}
+
+/* Error Line Shake */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+/* Floating Crown Badge */
+@keyframes floatBadge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Pulse SVG Circuit Line */
+.pulse-line {
+  stroke-dasharray: 8;
+  animation: dashCycle 1.5s linear infinite;
+}
+
+@keyframes dashCycle {
+  to {
+    stroke-dashoffset: -16;
+  }
+}

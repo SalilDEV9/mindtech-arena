@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIND//MIND - Neon Red Cyber Arena</title>
+  <meta name="description" content="Visual decoding, bug hunting, and exciting buzzer finish competition platform.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css?v=5.2">
+  <link rel="stylesheet" href="css/components.css?v=5.2">
+  <link rel="stylesheet" href="css/animations.css?v=5.2">
+</head>
+<body class="cyber-theme">
+  <!-- Interactive Dynamic Red Node Matrix Background -->
+  <canvas id="cyber-particles-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; display: block;"></canvas>
+
+  <!-- Interactive Click Twinkle & Sparkle Overlay -->
+  <canvas id="cyber-twinkle-canvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; display: block;"></canvas>
+
+  <!-- Subtle CRT Scanline & Grain Overlay -->
+  <div class="crt-scanlines" aria-hidden="true"></div>
+  <div class="crt-vignette" aria-hidden="true"></div>
+
+  <!-- Floating Alerts & Credit Notifications -->
+  <div id="floating-alerts-container" class="floating-alerts-layer"></div>
+
+  <!-- Score Increment Float Badge -->
+  <div id="score-anim-badge" class="score-anim-badge hidden"></div>
+
+  <!-- Master Cyber HUD Top Navigation -->
+  <header class="master-hud">
+    <div class="hud-brand">
+      <div class="hud-logo-icon">▲</div>
+      <div class="hud-logo-text">
+        <span class="logo-primary">MIND<span class="logo-slash">//</span>MIND</span>
+      </div>
+    </div>
+
+    <!-- Live Performance Telemetry -->
+    <div class="hud-telemetry">
+      <div class="telemetry-item score-item">
+        <span class="telemetry-label">SCORE</span>
+        <div class="telemetry-value-wrap">
+          <span class="cyber-score-val">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD Action Controls -->
+    <div class="hud-controls">
+      <a href="dashboard.html" target="_blank" class="hud-btn dashboard-btn" title="Open Live Spectator Dashboard">
+        <span>DASHBOARD</span>
+      </a>
+      <button id="hud-leaderboard-btn" class="hud-btn leaderboard-btn" onclick="window.game ? window.game.openLeaderboardModal() : null" title="Leaderboard">
+        <span>TEAMS</span>
+      </button>
+      <button id="sound-toggle-btn" class="hud-btn sound-btn" title="Toggle Sound">
+        SOUND: ON
+      </button>
+    </div>
+  </header>
+
+  <!-- In-Game Tactical Sub-HUD (Visible during rounds) -->
+  <nav class="tactical-sub-hud" id="tactical-sub-hud">
+    <div class="round-tracker">
+      <span class="status-pip"></span>
+      <span id="hud-round-title" class="hud-round-title">STAGE // READY</span>
+      <span class="divider">/</span>
+      <span id="hud-round-progress" class="hud-round-progress">0/0</span>
+    </div>
+
+    <!-- In-Game Countdown Badge -->
+    <div class="timer-tracker" id="hud-timer-badge">
+      <span class="timer-label">TIME</span>
+      <span id="round-timer-val" class="timer-val">--</span><span class="timer-sec">s</span>
+    </div>
+  </nav>
+
+  <!-- Main View Container -->
+  <main class="arena-main-content">
+    
+    <!-- ============================================== -->
+    <!-- VIEW 1: WELCOME & REGISTRATION SCREEN         -->
+    <!-- ============================================== -->
+    <section id="welcome-view" class="view-panel welcome-screen">
+      <div class="welcome-hero-banner">
+        <h1 class="hero-glitch-title" data-text="MIND//MIND">MIND<span class="crimson-highlight">//</span>MIND</h1>
+        <p class="hero-tagline">CODE • DEBUG • CONQUER</p>
+      </div>
+
+      <!-- Identity Console -->
+      <div class="identity-terminal-card glass-panel">
+        <div class="identity-form-row">
+          <div class="identity-input-group">
+            <label for="team-id-input" class="cyber-input-label">TEAM ID</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">#</span>
+              <input type="text" id="team-id-input" class="cyber-text-input" placeholder="TM-101" maxlength="20" required>
+            </div>
+          </div>
+          <div class="identity-input-group">
+            <label for="player-name-input" class="cyber-input-label">TEAM NAME</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">&gt;</span>
+              <input type="text" id="player-name-input" class="cyber-text-input" placeholder="CYBER_OPERATOR" maxlength="24">
+            </div>
+          </div>
+          <div class="identity-input-group">
+            <label for="question-set-select" class="cyber-input-label">QUESTION SET</label>
+            <div class="input-wrapper select-wrapper">
+              <span class="input-prefix">◈</span>
+              <select id="question-set-select" class="cyber-text-input cyber-select-input" aria-label="Question Set">
+                <option value="set1" selected>SET 1 (ALPHA)</option>
+                <option value="set2">SET 2 (BETA)</option>
+                <option value="set3">SET 3 (GAMMA)</option>
+                <option value="set4">SET 4 (DELTA)</option>
+              </select>
+            </div>
+          </div>
+          <button class="neon-btn btn-primary pulse-btn" id="btn-start-run">
+            ENTER ARENA ▶
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 Stage Mission Architecture -->
+      <div class="mission-stages-grid">
+        <div class="stage-card glass-panel">
+          <div class="stage-num">01</div>
+          <div class="stage-header">
+            <h3>DECODE VISUALS</h3>
+          </div>
+          <p class="stage-desc">
+            Analyze layout structures, circuit logic, and memory pointer behaviors.
+          </p>
+          <div class="stage-meta-row" style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+            <div class="stage-badge-pill">4 PUZZLES</div>
+            <div class="stage-badge-pill">100 PTS</div>
+          </div>
+        </div>
+
+        <div class="stage-card glass-panel">
+          <div class="stage-num">02</div>
+          <div class="stage-header">
+            <h3>SPOT THE ERRORS</h3>
+          </div>
+          <p class="stage-desc">
+            Identify syntax traps and inspect live code execution in the terminal.
+          </p>
+          <div class="stage-meta-row" style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+            <div class="stage-badge-pill">8 BUGS</div>
+            <div class="stage-badge-pill">150 PTS</div>
+          </div>
+        </div>
+
+        <div class="stage-card featured-stage glass-panel">
+          <div class="stage-num">03</div>
+          <div class="stage-header">
+            <h3>BUZZER FINISH</h3>
+          </div>
+          <p class="stage-desc">
+            High-stakes speed quiz. Buzz in before the clock expires to claim points.
+          </p>
+          <div class="stage-meta-row" style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+            <div class="stage-badge-pill highlight-pill">8 BLITZ</div>
+            <div class="stage-badge-pill highlight-pill">200 PTS</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 2: ACTIVE GAMEPLAY CHALLENGE VIEW        -->
+    <!-- ============================================== -->
+    <section id="round-view" class="view-panel hidden">
+      <div id="round-view-container">
+        <!-- Injected dynamically by Round1Visual, Round2Bugs, or Round3Buzzer -->
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 3: VICTORY & SUMMARY REPORT SCREEN       -->
+    <!-- ============================================== -->
+    <section id="victory-view" class="view-panel hidden">
+      <div class="victory-container">
+        <h1 class="victory-headline">ARENA COMPLETE</h1>
+        <p class="victory-sub">Final results compiled.</p>
+
+        <div class="victory-stats-card glass-panel">
+          <div class="operative-name-tag">
+            <span class="tag-label">TEAM ID:</span>
+            <span id="final-team-id" class="tag-val text-neon-bright">TEAM_01</span>
+            <span class="tag-divider">|</span>
+            <span class="tag-label">TEAM:</span>
+            <span id="final-player-name" class="tag-val">CYBER_OPERATOR</span>
+          </div>
+
+          <div class="rank-award-box">
+            <span class="rank-label">TIER</span>
+            <div id="final-rank-tag" class="rank-name">CYBER ARCHITECT</div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <span class="stat-num cyber-score-val" id="final-score-display">0</span>
+              <span class="stat-lbl">FINAL SCORE</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num text-neon-bright" id="final-speed-rating">RAPID</span>
+              <span class="stat-lbl">RATING</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-num">3 / 3</span>
+              <span class="stat-lbl">STAGES CLEARED</span>
+            </div>
+          </div>
+
+          <div class="victory-actions">
+            <button class="neon-btn btn-primary" onclick="window.game.openLeaderboardModal()">
+              VIEW LEADERBOARD
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: STAGE INTERMISSION                     -->
+  <!-- ============================================== -->
+  <div id="intermission-modal" class="modal-overlay hidden">
+    <div class="modal-window cyber-modal intermission-modal-box glass-panel">
+      <div class="intermission-top-header">
+        <span class="cyber-badge" id="intermission-round-tag">STAGE COMPLETE</span>
+        <h2 id="intermission-headline">ROUND CONQUERED!</h2>
+      </div>
+
+      <div class="intermission-content">
+        <div class="intermission-intel-card">
+          <div class="intel-next-label">UPCOMING:</div>
+          <h3 id="intermission-next-title" class="intel-title">STAGE 2: SPOT THE ERRORS</h3>
+          <p id="intermission-next-desc" class="intel-desc">Prepare for the next challenge.</p>
+        </div>
+
+        <div class="intermission-gear-up-banner">
+          <div class="gear-actions" style="width: 100%; justify-content: center;">
+            <button id="intermission-proceed-btn" class="neon-btn btn-primary pulse-btn" style="width: 100%; max-width: 320px;">
+              COMMENCE NEXT ROUND ▶
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: LEADERBOARD                            -->
+  <!-- ============================================== -->
+  <div id="leaderboard-modal" class="modal-overlay hidden">
+    <div class="modal-window cyber-modal leaderboard-modal-box glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2>LEADERBOARD // TEAM STANDINGS</h2>
+        </div>
+        <button class="close-modal-btn" title="Close Leaderboard">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Live Team Search Bar -->
+        <div class="leaderboard-search-wrap">
+          <input type="text" id="team-search-input" class="cyber-text-input" placeholder="Search Team ID or Name..." oninput="window.game ? window.game.filterTeamScores(this.value) : null">
+          <a href="dashboard.html" target="_blank" class="neon-btn btn-sm" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">LIVE DASHBOARD</a>
+          <button class="neon-btn btn-sm" onclick="window.game.exportScoresJSON()">EXPORT JSON</button>
+        </div>
+
+        <div class="leaderboard-table-container">
+          <table class="cyber-table">
+            <thead>
+              <tr>
+                <th>RANK</th>
+                <th>TEAM ID</th>
+                <th>TEAM NAME</th>
+                <th>SCORE</th>
+                <th>TIER</th>
+                <th>TIMESTAMP</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="neon-btn btn-sm" onclick="window.game.clearStoredScores()">CLEAR SCORES</button>
+        <button class="neon-btn close-modal-btn">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.io Real-Time Client (with offline server fallback) -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    if (typeof io === 'undefined') {
+      document.write('<script src="/socket.io/socket.io.js"><\/script>');
+    }
+  </script>
+
+  <!-- Scripts -->
+  <script src="js/audio.js?v=5.2"></script>
+  <script src="js/particles.js?v=5.2"></script>
+  <script src="js/questions-set1.js?v=5.2"></script>
+  <script src="js/questions-set2.js?v=5.2"></script>
+  <script src="js/questions-set3.js?v=5.2"></script>
+  <script src="js/questions-set4.js?v=5.2"></script>
+  <script src="js/questions.js?v=5.2"></script>
+  <script src="js/store.js?v=5.2"></script>
+  <script src="js/rounds/round1-visual.js?v=5.2"></script>
+  <script src="js/rounds/round2-bugs.js?v=5.2"></script>
+  <script src="js/rounds/round3-buzzer.js?v=5.2"></script>
+  <script src="js/app.js?v=5.2"></script>
+</body>
+</html>

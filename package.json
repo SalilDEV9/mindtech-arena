@@ -1,0 +1,26 @@
+{
+  "name": "mindmind-cyber-arena",
+  "version": "2.3.0",
+  "description": "MIND//MIND - Neon Red Cyber Arena Competition Platform",
+  "main": "backend-mongoose-server.js",
+  "scripts": {
+    "start": "node backend-mongoose-server.js",
+    "dev": "node backend-mongoose-server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.1",
+    "socket.io": "^4.7.5"
+  },
+  "keywords": [
+    "cyberpunk",
+    "quiz",
+    "arena",
+    "mongoose",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC"
+}
