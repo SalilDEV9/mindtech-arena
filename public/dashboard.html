@@ -326,7 +326,10 @@
           <input type="text" id="dash-search" class="dash-search-input" placeholder="Filter by Squad Name or Team ID...">
         </div>
 
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="export-csv-btn" class="dash-btn" title="Download teams CSV from MongoDB">
+            <span>EXPORT CSV</span>
+          </button>
           <button id="export-json-btn" class="dash-btn" title="Download JSON">
             <span>EXPORT JSON</span>
           </button>
@@ -383,6 +386,6 @@
 
   <!-- Scripts -->
   <script src="js/particles.js?v=5.2"></script>
-  <script src="js/dashboard.js?v=5.3"></script>
+  <script src="js/dashboard.js?v=5.6"></script>
 </body>
 </html>

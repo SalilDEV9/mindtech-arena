@@ -153,6 +153,7 @@ Visit:
 
 #### 4. Managing Tournament Leaderboards
 - The live leaderboard updates in real-time as candidates score points across Rounds 1, 2, and 3.
+- **EXPORT CSV** downloads live MongoDB team records (`teamId`, `teamName`, `score`, `currentRound`, `qualified`). The `qualified` column is blank until organizers mark the advancing teams. Admin login is required. This export is read-only and fails if MongoDB is disconnected.
 - To start a new tournament bracket or clear all team registrations, click **`RESET ALL SCORES`** in the dashboard. This clears the MongoDB records, empties buzzer queues, and re-locks the gatekeeper.
 
 ---
@@ -196,6 +197,7 @@ Visit:
 | Method | Route | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/admin/login` | Validates admin password against `.env` |
+| `GET` | `/api/admin/teams/export.csv` | Admin-token-protected MongoDB CSV export of registered teams; `qualified` column initially blank |
 | `GET` | `/api/quiz/status` | Returns whether Admin has launched the tournament (`quizStarted`) |
 | `POST` | `/api/quiz/start` | Admin launches the quiz and unlocks all candidate arenas |
 | `POST` | `/api/quiz/stop` | Admin pauses / locks candidate arena entry |

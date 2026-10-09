@@ -15,7 +15,8 @@ class ArenaDashboard {
     this.soundEnabled = true;
     this.previousLeader = null;
     this.audioCtx = null;
-    this.isAuthenticated = sessionStorage.getItem('mindmind_dash_authenticated') === 'true';
+    this.adminExportToken = sessionStorage.getItem('mindmind_admin_export_token') || '';
+    this.isAuthenticated = sessionStorage.getItem('mindmind_dash_authenticated') === 'true' && !!this.adminExportToken;
 
     // Buzzer Round State
     this.currentQuestionSet = 'set1';
@@ -90,6 +91,8 @@ class ArenaDashboard {
         if (passInput) passInput.classList.remove('input-error');
       } else {
         sessionStorage.removeItem('mindmind_dash_authenticated');
+        sessionStorage.removeItem('mindmind_admin_export_token');
+        this.adminExportToken = '';
         if (overlay) overlay.classList.remove('hidden');
         if (container) container.classList.add('locked');
         if (passInput) passInput.value = '';
@@ -114,7 +117,11 @@ class ArenaDashboard {
           });
           if (res.ok) {
             const data = await res.json();
-            if (data.success) authSuccess = true;
+            if (data.success && typeof data.token === 'string' && data.token.length > 0) {
+              authSuccess = true;
+              this.adminExportToken = data.token;
+              sessionStorage.setItem('mindmind_admin_export_token', data.token);
+            }
           }
         } catch(err) {
           // Login fails closed if the server is unavailable
@@ -622,10 +629,14 @@ class ArenaDashboard {
       resetBtn.addEventListener('click', () => this.resetArenaScores());
     }
 
-    // Export JSON
+    // Keep existing JSON export. CSV export fetches directly from MongoDB.
     const exportBtn = document.getElementById('export-json-btn');
     if (exportBtn) {
       exportBtn.addEventListener('click', () => this.exportScoresJSON());
+    }
+    const csvExportBtn = document.getElementById('export-csv-btn');
+    if (csvExportBtn) {
+      csvExportBtn.addEventListener('click', () => this.exportTeamsCSV());
     }
   }
 
@@ -958,6 +969,41 @@ class ArenaDashboard {
     this.render();
     this.playBeep(400, 0.2);
     this.showToast('Scores cleared');
+  }
+
+  async exportTeamsCSV() {
+    if (!this.isAuthenticated || !this.adminExportToken) {
+      alert('Please log in as admin before exporting the team records.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/teams/export.csv', {
+        headers: { Authorization: 'Bearer ' + this.adminExportToken },
+        cache: 'no-store'
+      });
+      if (res.status === 401) {
+        alert('Your admin export session has expired. Log out and log in again to download CSV.');
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(res.status === 503
+          ? 'MongoDB is disconnected. Export canceled to avoid incomplete records.'
+          : 'Could not download teams CSV (' + res.status + ').');
+      }
+      const csv = await res.blob();
+      const url = URL.createObjectURL(csv);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mindtech-arena-teams.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      this.showToast('Downloaded live teams CSV');
+    } catch (error) {
+      console.error('[CSV Export]', error);
+      alert(error.message || 'Failed to export team records.');
+    }
   }
 
   exportScoresJSON() {

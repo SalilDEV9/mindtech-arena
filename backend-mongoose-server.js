@@ -10,6 +10,7 @@ try {
 const express = require('express');
 const http = require('http');
 const path = require('path');
+const crypto = require('crypto');
 const cors = require('cors');
 
 let mongoose;
@@ -363,11 +364,41 @@ app.post('/api/quiz/stop', (req, res) => {
   res.status(200).json({ success: true, quizStarted: false });
 });
 
+// Short-lived, password-derived token for read-only team CSV exports.
+// Scoped HMAC tokens work across server restarts and expire after eight hours.
+const CSV_TOKEN_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+function csvExportSignature(expiry) {
+  return crypto.createHmac('sha256', ADMIN_PASSWORD)
+    .update('mindtech-admin-csv-export-v1:' + expiry).digest('hex');
+}
+function issueCsvExportToken() {
+  const expiry = String(Date.now() + CSV_TOKEN_MAX_AGE_MS);
+  return expiry + '.' + csvExportSignature(expiry);
+}
+function isAuthorizedCsvExport(req) {
+  if (!ADMIN_PASSWORD) return false;
+  const auth = req.get('authorization') || '';
+  const match = /^Bearer (\d{13})\.([a-f0-9]{64})$/.exec(auth);
+  if (!match) return false;
+  const expiry = Number(match[1]);
+  if (expiry <= Date.now() || expiry > Date.now() + CSV_TOKEN_MAX_AGE_MS) return false;
+  const supplied = Buffer.from(match[2], 'hex');
+  const expected = Buffer.from(csvExportSignature(match[1]), 'hex');
+  return supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
+}
+
+function csvCell(value) {
+  let text = String(value === undefined || value === null ? '' : value);
+  // Prevent exported text from being interpreted as a spreadsheet formula.
+  if (/^[\s\x00-\x1f]*[=+@-]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
 // 1. Admin Authentication
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body || {};
   if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
-    return res.status(200).json({ success: true, token: 'admin_authenticated_session' });
+    return res.status(200).json({ success: true, token: issueCsvExportToken() });
   }
   return res.status(401).json({ success: false, error: 'Invalid admin credentials' });
 });
@@ -422,6 +453,42 @@ app.get('/api/scores', async (req, res) => {
     res.status(200).json({ count: leaderboard.length, leaderboard });
   } catch (err) {
     res.status(500).json({ error: 'Error fetching scores' });
+  }
+});
+
+// Download an authoritative MongoDB snapshot for the next round.
+// Qualification is left blank for an admin to set after judging.
+app.get('/api/admin/teams/export.csv', async (req, res) => {
+  if (!isAuthorizedCsvExport(req)) {
+    return res.status(401).json({ error: 'Admin login required to export teams' });
+  }
+  if (!isMongoConnected || !Team) {
+    return res.status(503).json({ error: 'Database unavailable; export aborted to avoid missing teams' });
+  }
+  try {
+    const teams = await Team.find({}, {
+      _id: 0, teamId: 1, teamName: 1, score: 1, currentRound: 1
+    }).sort({ score: -1, teamId: 1 }).lean();
+
+    const header = ['teamId', 'teamName', 'score', 'currentRound', 'qualified'];
+    const lines = [header.join(',')];
+    for (const team of teams) {
+      lines.push([
+        csvCell(team.teamId),
+        csvCell(team.teamName || ''),
+        csvCell(Number(team.score) || 0),
+        csvCell(Number(team.currentRound) || 1),
+        csvCell('')
+      ].join(','));
+    }
+
+    res.set('Content-Type', 'text/csv; charset=utf-8');
+    res.set('Content-Disposition', 'attachment; filename="mindtech-arena-teams.csv"');
+    res.set('Cache-Control', 'private, no-store');
+    return res.status(200).send('\uFEFF' + lines.join('\r\n') + '\r\n');
+  } catch (error) {
+    console.error('[CSV Export] Failed:', error.message);
+    return res.status(500).json({ error: 'Could not export team records' });
   }
 });
 
