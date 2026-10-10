@@ -104,3 +104,9 @@ Checks: `ROUND2_TEST_MEMORY=1 npm test` runs the HTTP and UI regression tests wi
 In **02 Release PS**, click **Release this PS** beside a draft to publish its brief to everyone. Click **Show / allocate** beside an available released PS to acquire controller access and put that PS on the projector. Set the event phase to **Bidding**, choose the winning team and final credits in **01 Allocate PS**, review the summary, and click **4. Confirm allocation to team**. Allocation and credit deduction still use the existing transactional sale endpoint.
 
 The participant reveal and projector use a short two-burst game-show buzzer instead of the old quiet impact / instrumental cue. Click **Enable reveal buzzer** once to allow browser audio; the projector includes **Test buzzer** and a volume slider defaulting to 100%. Output loudness also depends on system and speaker volume.
+
+## Direct allocation (separate from bidding)
+
+**01 Direct allocation** is the default organiser panel. Select a published, unassigned PS and an unassigned team, set credits to deduct (0 by default), review the confirmation and allocate. No auction controller or bidding phase is required. The round must not be Closed. **07 Bidding / projector** retains the optional auction. Direct allocation does not change the projector state. Use Challenge work phase when teams should upload solutions.
+
+The `allocate` action uses the existing atomic, idempotent admin mutation store and audit log. It rejects draft or duplicate allocations, negative credits and overspending.
