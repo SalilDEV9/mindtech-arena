@@ -86,3 +86,15 @@ The local runtime may prohibit MongoDB's process startup. A passed HTTP test dou
 - Phone-sized participant layout and projector legibility in the event room.
 
 The 20 final problem statements, production Atlas credentials and admin secret must be supplied by the organiser before the event is ready.
+
+## Solution submissions
+
+Assigned teams can upload one PDF or DOCX (maximum 4 MiB) from their workspace during Bidding or Challenge work. A successful replacement becomes the latest submission. Setting the phase to Closed blocks new submissions and replacements; downloads remain available.
+
+Organisers use **06 Submissions** to see every team's status, PS, filename, size and upload time, then download the document. That panel refreshes every ten seconds while visible. Teams may download only their own submission.
+
+Files are stored as BSON binary in the isolated Round 2 database's `submissions` collection, keyed by team ID. Only metadata is embedded in event state. The binary, metadata and audit entry commit in one MongoDB transaction. Concurrent replacements use a version precondition; identical retries are idempotent. Files are never placed in public assets or the server filesystem. Existing database credentials suffice; no new environment variables or services are required. Submitted assignments cannot be reversed.
+
+Validation checks the filename and actual PDF signature / DOCX ZIP structure. DOCX archives with encryption, macros, excessive entries or oversized expanded contents are rejected. Validation is not an antivirus scan. Downloads are authenticated attachments.
+
+Checks: `ROUND2_TEST_MEMORY=1 npm test` runs the HTTP and UI regression tests with an isolated test double. `ROUND2_TEST_MONGO=1 node --test test/submissions.test.js` verifies actual MongoDB transactions with an ephemeral local replica set.

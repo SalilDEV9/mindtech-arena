@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test --test-concurrency=1 test/*.test.js",
-    "check": "node --check server.js && node --check public/app.js && node --check public/auction.js && node --check public/reveal-audio.js && node --check public/ps-reveal.js",
+    "check": "node --check server.js && node --check public/app.js && node --check public/auction.js && node --check public/reveal-audio.js && node --check public/ps-reveal.js && node --check public/submissions.js && node --check lib/submissions.js",
     "build": "npm run check",
     "test:http": "ROUND2_TEST_MEMORY=1 node --test --test-concurrency=1 test/integration.test.js",
     "test:unit": "node --test test/domain.test.js test/display.test.js test/dashboard.test.js"
@@ -16,7 +16,8 @@
   "dependencies": {
     "csv-parse": "7.0.3",
     "express": "5.3.0",
-    "mongodb": "7.7.0"
+    "mongodb": "7.7.0",
+    "yauzl": "3.4.0"
   },
   "devDependencies": {
     "mongodb-memory-server": "10.2.3"
