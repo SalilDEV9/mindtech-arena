@@ -29,6 +29,46 @@ case 'allocate':{ensure(actor==='admin','Organiser access required.',403);ensure
 case 'sale':{lease(s,b.owner);ensure(s.phase==='bidding','Open the bidding phase first.');const ps=b.problemIds===undefined?[b.problemId]:b.problemIds;ensure(Array.isArray(ps)&&ps.length,'Select a problem.');const minimum=ps.reduce((sum,pid)=>{const p=s.problems.find(p=>p.id===pid);return sum+(p?.startingPrice||0);},0);ensure(number(b.price)>=minimum,'Bid is below the combined starting price.');const a=addProblems(s,b,actor);const ids=a.result.problemIds;s.auction={sequence:s.auction.sequence+1,problemId:ids[0],problemIds:ids,price:a.price,leader:a.team.id,status:'sold'};result=a.result;break;}
 case 'reverse':{text(b.reason,300);const t=s.teams.find(t=>t.id===b.teamId);ensure(t&&assignedIds(t).length,'Team has no assignment.');ensure(!t.submission,'A solution has been submitted. Reassignment is blocked.');ensure(assignedIds(t).every(pid=>{const p=s.problems.find(p=>p.id===pid);return !p||releasedCount(t,p)===0;}),'Constraints have been seen. Reassignment is blocked; resolve with the event lead.');t.assignment=null;t.assignments=[];t.revealCounts={};t.spent=0;t.revealed=false;t.revealedCount=0;s.auction={sequence:s.auction.sequence+1,problemId:null,problemIds:[],price:0,leader:null,status:'upcoming'};break;}
 case 'adjust':{text(b.reason,300);const t=s.teams.find(t=>t.id===b.teamId);ensure(t,'Unknown team.');const n=number(b.starting);ensure(n>=t.spent,'Starting credits cannot be below spent credits.');t.starting=n;break;}
+case 'editCredits':{
+ ensure(actor==='admin','Organiser access required.',403);
+ text(b.reason,300);
+ const t=s.teams.find(t=>t.id===b.teamId);ensure(t,'Unknown team.');
+ ensure(b.expectedStarting===t.starting&&b.expectedSpent===t.spent,'Team credits changed since this screen loaded. Refresh and try again.',409);
+ const starting=number(b.starting),spent=number(b.spent);
+ ensure(spent<=starting,'Spent credits cannot exceed starting credits.');
+ t.starting=starting;t.spent=spent;
+ result={ok:true,teamId:t.id,starting,spent,available:starting-spent};break;
+}
+case 'editAssignments':{
+ ensure(actor==='admin','Organiser access required.',403);
+ text(b.reason,300);
+ const t=s.teams.find(t=>t.id===b.teamId);ensure(t,'Unknown team.');
+ const old=assignedIds(t);
+ ensure(Array.isArray(b.expectedProblemIds)&&JSON.stringify(b.expectedProblemIds)===JSON.stringify(old),'Team PS allotment changed since this screen loaded. Refresh and try again.',409);
+ ensure(Array.isArray(b.problemIds)&&b.problemIds.length<=30,'Select up to 30 problem statements.');
+ ensure(new Set(b.problemIds).size===b.problemIds.length,'A PS was selected more than once.');
+ for(const pid of b.problemIds){
+  const p=s.problems.find(p=>p.id===pid);
+  ensure(p&&p.published,'All selected PSs must be released.');
+  ensure(!s.teams.some(other=>other.id!==t.id&&assignedIds(other).includes(pid)),pid+' is already assigned to another team.',409);
+ }
+ const changed=JSON.stringify(old)!==JSON.stringify(b.problemIds);
+ ensure(!changed||!t.submission,'This team has submitted a solution. PS edits are locked.',409);
+ for(const pid of old.filter(pid=>!b.problemIds.includes(pid))){
+  const p=s.problems.find(p=>p.id===pid);
+  ensure(!p||releasedCount(t,p)===0,'Cannot remove '+pid+': its private constraints have already been released.',409);
+ }
+ const counts={};for(const pid of old){const p=s.problems.find(p=>p.id===pid);if(p)counts[pid]=releasedCount(t,p);}
+ t.assignments=[...b.problemIds];t.assignment=t.assignments[0]||null;
+ t.revealCounts=Object.fromEntries(t.assignments.filter(pid=>counts[pid]>0).map(pid=>[pid,counts[pid]]));
+ t.revealedCount=t.assignment?(counts[t.assignment]||0):0;
+ const primary=t.assignment?s.problems.find(p=>p.id===t.assignment):null;
+ t.revealed=!!(primary&&t.revealedCount===constraintStages(primary).length);
+ if(changed&&s.auction.status==='sold'&&s.auction.leader===t.id){
+  s.auction={sequence:s.auction.sequence+1,problemId:null,problemIds:[],price:0,leader:null,status:'upcoming'};
+ }
+ result={ok:true,teamId:t.id,problemIds:t.assignments,available:t.starting-t.spent};break;
+}
 case 'reveal':{const items=Array.isArray(b.items)?b.items:Array.isArray(b.ids)?b.ids.map(teamId=>({teamId})):[];ensure(items.length>0,'Select assigned challenges.');const seen=new Set();for(const item of items){const t=s.teams.find(t=>t.id===item.teamId);const pid=item.problemId||t?.assignment;ensure(t&&pid&&assignedIds(t).includes(pid),'Every selected team must own the selected PS.');const key=t.id+':'+pid;if(seen.has(key))continue;seen.add(key);const p=s.problems.find(p=>p.id===pid);ensure(p,'Assigned problem is missing.');const count=releasedCount(t,p);ensure(count<constraintStages(p).length,'All constraints are already released.');t.revealCounts={...(t.revealCounts||{}),[pid]:count+1};if(pid===t.assignment){t.revealedCount=count+1;t.revealed=count+1===constraintStages(p).length;}}break;}
 case 'rotate':{const t=s.teams.find(t=>t.id===b.teamId);ensure(t,'Unknown team.');t.codeVersion=randomUUID();break;}
 default:throw new Fault(404,'Unknown action.');}s.revision++;if(!['auction','claim'].includes(action))s.publicRevision++;s.updatedAt=new Date().toISOString();return result;}

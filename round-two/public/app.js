@@ -40,6 +40,23 @@ function renderTeam(d){if(d.unchanged)return;window.dispatchEvent(new CustomEven
 async function pollTeam(){try{const d=await api('/api/me?version='+teamVersion);if(d.role==='admin'){message('You are signed in as an organiser. Open the organiser panel or sign out to use a Team ID.');$('logout').hidden=false;$('challenge-board').hidden=false;cards((await api('/api/public')).problems);}else{renderTeam(d);connection(true);}}catch(e){if(e.status===401){$('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;$('challenge-board').hidden=true;teamVersion=-1;lastAssignment='';hasTeamSnapshot=false;publicProblems=[];cardFingerprint='';seenProblems.clear();if($('phase'))$('phase').textContent='SIGN IN REQUIRED';}else{connection(false);message(e.message);}}pollTimer=setTimeout(pollTeam,3000+Math.random()*700);}
 function table(head,rows){return `<table><thead><tr>${head.map(h=>'<th>'+esc(h)+'</th>').join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;}
 function selected(selector){return [...document.querySelectorAll(selector+':checked')].map(n=>n.value);}
+function renderManualEditor(teamId){
+ const select=$('edit-team');if(!select)return;
+ const wanted=teamId??select.value;
+ select.innerHTML='<option value="">Select a team</option>'+current.teams.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.id)+' · '+esc(t.name)+'</option>').join('');
+ select.value=current.teams.some(t=>t.id===wanted)?wanted:'';
+ const t=current.teams.find(t=>t.id===select.value);
+ $('edit-credit-save').disabled=$('edit-ps-save').disabled=!t;
+ $('edit-team-summary').textContent=t?t.name+' ('+t.id+') · Starting '+t.starting+' · Spent '+t.spent+' · Available '+(t.starting-t.spent)+' · PS: '+(assignedIds(t).join(', ')||'Not allotted'):'Choose a team to edit.';
+ $('edit-starting').value=t?t.starting:'';
+ $('edit-spent').value=t?t.spent:'';
+ $('edit-credit-reason').value='';$('edit-ps-reason').value='';
+ const mine=t?assignedIds(t):[];
+ $('edit-ps-list').innerHTML=t?current.problems.filter(p=>p.published||mine.includes(p.id)).map(p=>{
+  const owner=current.teams.find(other=>other.id!==t.id&&assignedIds(other).includes(p.id));
+  return '<label class="ps-pick"><input class="edit-ps-check" type="checkbox" value="'+esc(p.id)+'" '+(mine.includes(p.id)?'checked':'')+' '+(owner?'disabled':'')+'><span><strong>'+esc(p.id)+'</strong> · '+esc(p.title)+'<small>'+(owner?'Already allotted to '+esc(owner.id):mine.includes(p.id)?'Currently allotted':'Available')+'</small></span></label>';
+ }).join(''):'<p class="muted">Choose a team first.</p>';
+}
 async function loadAdmin(){current=await api('/api/admin/state');$('login').hidden=true;$('admin-workspace').hidden=false;$('retry').hidden=!readPending();connection(true);phase(current);$('phase-select').value=current.phase;
 $('admin-problems').innerHTML=current.problems.length?current.problems.map(p=>`<div class="toolbar"><label><input type="checkbox" class="pick-problem" value="${esc(p.id)}"> ${esc(p.id)} · ${esc(p.title)} <small class="tag">${p.published?'RELEASED':'DRAFT'}</small></label><div class="row">${!p.published?`<button class="primary" data-release-one="${esc(p.id)}">Release this PS</button>`:current.teams.some(t=>assignedIds(t).includes(p.id))?'<span class="tag">ALLOCATED</span>':`<button class="primary" data-allocate-ps="${esc(p.id)}">Show / bid</button><button class="primary" data-direct-ps="${esc(p.id)}">Allocate directly</button>`}<button data-preview="${esc(p.id)}">Preview</button><button data-edit="${esc(p.id)}" ${p.published?'disabled':''}>Edit</button></div></div>`).join(''):'<p class="muted">No problem statements yet. Add your final event content here.</p>';
 document.querySelectorAll('[data-release-one]').forEach(b=>b.onclick=safe(async()=>{if(confirm('Release '+b.dataset.releaseOne+' so all teams can read it?')){await mutate('publish',{ids:[b.dataset.releaseOne],published:true});message('PS released to all teams. Click Allocate directly beside it to choose a team.');}}));
@@ -47,11 +64,11 @@ document.querySelectorAll('[data-direct-ps]').forEach(b=>b.onclick=()=>{document
 document.querySelectorAll('[data-allocate-ps]').forEach(b=>b.onclick=()=>{document.querySelector('[data-tab="auction"]').click();window.dispatchEvent(new CustomEvent('r2-choose-ps',{detail:{problemId:b.dataset.allocatePs}}));$('tab-auction').scrollIntoView({block:'start'});});
 document.querySelectorAll('[data-preview]').forEach(b=>b.onclick=()=>showProblem(current.problems.find(p=>p.id===b.dataset.preview)));
 document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const p=current.problems.find(p=>p.id===b.dataset.edit);for(const [k,v] of Object.entries(p)){const el=$('problem-form').elements.namedItem(k);if(el)el.value=v;}});
-$('admin-teams').innerHTML=table(['ID / Team','Starting','Spent','Available','Problems','Actions'],current.teams.map(t=>`<tr><td>${esc(t.id)}<br>${esc(t.name)}</td><td>${t.starting}</td><td>${t.spent}</td><td>${t.starting-t.spent}</td><td>${esc(assignedIds(t).join(', ')||'—')}</td><td><button data-adjust="${esc(t.id)}">Adjust</button> ${assignedIds(t).length&&!assignedIds(t).some(pid=>stageCount(t,pid)>0)?`<button data-reverse="${esc(t.id)}">Reverse sale</button>`:''}</td></tr>`));
+$('admin-teams').innerHTML=table(['ID / Team','Starting','Spent','Available','Problems','Actions'],current.teams.map(t=>`<tr><td>${esc(t.id)}<br>${esc(t.name)}</td><td>${t.starting}</td><td>${t.spent}</td><td>${t.starting-t.spent}</td><td>${esc(assignedIds(t).join(', ')||'—')}</td><td><button data-edit-team="${esc(t.id)}">Edit credits / PS</button> ${assignedIds(t).length&&!assignedIds(t).some(pid=>stageCount(t,pid)>0)?`<button data-reverse="${esc(t.id)}">Reverse sale</button>`:''}</td></tr>`));
 $('reveal-teams').innerHTML=table(['Select','Team','Problem','Constraints'],current.teams.flatMap(t=>assignedIds(t).map(pid=>`<tr><td><input type="checkbox" class="pick-team" aria-label="Select ${esc(t.name)} ${esc(pid)}" value="${esc(t.id)}|${esc(pid)}" ${hasNext(t,pid)?'':'disabled'}></td><td>${esc(t.name)}</td><td>${esc(pid)}</td><td>${stageCount(t,pid)} / ${stages(current.problems.find(p=>p.id===pid)).length} released</td></tr>`)));
-document.querySelectorAll('[data-adjust]').forEach(b=>b.onclick=safe(async()=>{const t=current.teams.find(t=>t.id===b.dataset.adjust);const val=prompt('New starting credits for '+t.name,t.starting);if(val===null)return;const reason=prompt('Reason for this correction');if(!reason)return;await mutate('adjust',{teamId:t.id,starting:Number(val),reason});}));
+document.querySelectorAll('[data-edit-team]').forEach(b=>b.onclick=()=>{document.querySelector('[data-tab="teams"]').click();renderManualEditor(b.dataset.editTeam);$('manual-corrections').scrollIntoView({block:'start'});});
 document.querySelectorAll('[data-reverse]').forEach(b=>b.onclick=safe(async()=>{const reason=prompt('Reason to reverse this sale and refund credits');if(reason&&confirm('Reverse allocation and refund this team?'))await mutate('reverse',{teamId:b.dataset.reverse,reason});}));
-window.dispatchEvent(new CustomEvent('r2-state',{detail:current}));}
+renderManualEditor();window.dispatchEvent(new CustomEvent('r2-state',{detail:current}));}
 function exportCSV(filename,rows){const cell=v=>{let s=String(v??'');if(/^[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};const blob=new Blob(['\ufeff'+rows.map(r=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 on('close-dialog',()=>$('detail').close());
 on('logout',async()=>{await api('/api/logout',{});location.href='/';});
@@ -70,6 +87,24 @@ on('publish-selected',()=>publish(selected('.pick-problem'),true));on('publish-a
 on('csv-file',()=>{importCSV='';$('confirm-import').hidden=true;$('import-preview').textContent='';},'change');
 on('preview-import',async()=>{const file=$('csv-file').files[0];if(!file)throw new Error('Choose a CSV first.');if(file.size>150000)throw new Error('CSV is too large.');importCSV=await file.text();const rows=await api('/api/admin/import-preview',{csv:importCSV});$('import-preview').innerHTML=table(['ID','Team','Leader','Credits','Import'],rows.map(t=>`<tr><td>${esc(t.id)}</td><td>${esc(t.name)}</td><td>${esc(t.leader)}</td><td>${t.starting}</td><td>${t.exists?'Skip existing':'Add'}</td></tr>`));$('confirm-import').hidden=false;});
 on('confirm-import',async()=>{if(!importCSV)throw new Error('Preview the CSV first.');const r=await mutate('import',{csv:importCSV});message(`Imported ${r.added} teams; skipped ${r.skipped} existing teams.`);$('confirm-import').hidden=true;});
+on('edit-team',()=>renderManualEditor(),'change');
+on('edit-credit-form',async()=>{
+ const t=current.teams.find(t=>t.id===$('edit-team').value);if(!t)throw new Error('Select a team first.');
+ const reason=$('edit-credit-reason').value.trim();if(!reason)throw new Error('Enter a reason for the credit correction.');
+ const body={teamId:t.id,starting:Number($('edit-starting').value),spent:Number($('edit-spent').value),expectedStarting:t.starting,expectedSpent:t.spent,reason};
+ if(!Number.isSafeInteger(body.starting)||!Number.isSafeInteger(body.spent)||body.spent>body.starting)throw new Error('Enter whole-number credits and keep Spent at or below Starting.');
+ if(body.starting===t.starting&&body.spent===t.spent)throw new Error('Credits have not changed.');
+ if(!confirm('Change '+t.id+' credits from '+t.starting+'/'+t.spent+' to '+body.starting+'/'+body.spent+' (Starting/Spent)?'))return;
+ await mutate('editCredits',body);message('Credits corrected for '+t.id+'.');
+},'submit');
+on('edit-ps-form',async()=>{
+ const t=current.teams.find(t=>t.id===$('edit-team').value);if(!t)throw new Error('Select a team first.');
+ const reason=$('edit-ps-reason').value.trim();if(!reason)throw new Error('Enter a reason for the PS correction.');
+ const problemIds=selected('.edit-ps-check'),old=assignedIds(t);
+ if(JSON.stringify(problemIds)===JSON.stringify(old))throw new Error('PS allotment has not changed.');
+ if(!confirm('Replace '+t.id+' PS allotment: '+(old.join(', ')||'None')+' → '+(problemIds.join(', ')||'None')+'? Credits will NOT change.'))return;
+ await mutate('editAssignments',{teamId:t.id,problemIds,expectedProblemIds:old,reason});message('PS allotment corrected for '+t.id+'. Credits unchanged.');
+},'submit');
 on('export-results',()=>exportCSV('round-two-results.csv',[['Team ID','Team Name','Starting Credits','Spent','Available','Problem','Constraints Released','Total Constraints'],...current.teams.map(t=>[t.id,t.name,t.starting,t.spent,t.starting-t.spent,assignedIds(t).join('; '),assignedIds(t).map(pid=>pid+': '+stageCount(t,pid)).join('; '),assignedIds(t).map(pid=>pid+': '+stages(current.problems.find(p=>p.id===pid)).length).join('; ')])]));
 async function reveal(values){if(!values.length)throw new Error('Select a team and PS with an unreleased constraint.');const items=values.map(v=>{const [teamId,problemId]=v.split('|');return {teamId,problemId};});if(confirm('Reveal the NEXT constraint for '+items.map(x=>x.teamId+' / '+x.problemId).join(', ')+'? This cannot be undone.'))await mutate('reveal',{items});}
 on('reveal-selected',()=>reveal(selected('.pick-team')));on('reveal-all',()=>reveal(current.teams.flatMap(t=>assignedIds(t).filter(pid=>hasNext(t,pid)).map(pid=>t.id+'|'+pid))));
