@@ -1,6 +1,6 @@
 'use strict';
 const {test,before,after}=require('node:test');const assert=require('node:assert/strict');const {randomUUID}=require('node:crypto');
-const {createApp}=require('../server');const {code}=require('../lib/domain');const {MAX_BYTES,validateFile}=require('../lib/submissions');
+const {createApp}=require('../server');const {MAX_BYTES,validateFile}=require('../lib/submissions');
 let store,server,base,admin,cookie,other,mongo;const secret='submission-test-secret-at-least-32-characters',password='submission-test-admin-password';
 const pdf=Buffer.from('%PDF-1.4\n1 0 obj <</Type /Catalog>> endobj\n%%EOF');
 async function json(url,body,c=admin){const r=await fetch(base+url,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','X-Round-Two':'1','Idempotency-Key':randomUUID(),Cookie:c||''},body:body?JSON.stringify(body):undefined});return {status:r.status,data:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};}
@@ -11,7 +11,7 @@ before(async()=>{
  server=createApp({store,secret,password,secure:false}).listen(0);await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
  admin=(await json('/api/login',{role:'admin',password},'')).cookie;
  await json('/api/admin/import',{csv:'Team ID,Team Name,Team Leader,Final Credits\nT1,One,Lead,100\nT2,Two,Lead,100'});
- for(const t of (await store.read()).teams){const c=(await json('/api/login',{teamId:t.id,code:code(t,secret)},'')).cookie;if(t.id==='T1')cookie=c;else other=c;}
+ for(const t of (await store.read()).teams){const c=(await json('/api/login',{teamId:t.id},'')).cookie;if(t.id==='T1')cookie=c;else other=c;}
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(store)await store.close();if(mongo)await mongo.stop();});
 test('upload requires team login, assigned PS and same-origin request',async()=>{
