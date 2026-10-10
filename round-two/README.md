@@ -39,8 +39,8 @@ node --env-file=.env server.js
 ## Event setup
 
 1. Finalise Round 1 scores. Export `Team ID,Team Name,Team Leader,Final Credits`.
-2. Sign in to `/admin`, Teams & credits, upload and preview CSV, then confirm import. Existing IDs are skipped without modifying credit balances, assignments or access codes.
-3. Export private codes and distribute **each row only to its team**. Never post the entire private-code CSV publicly.
+2. Sign in to `/admin`, Teams & credits, upload and preview CSV, then confirm import. Existing IDs are skipped without modifying credit balances, assignments or team sessions.
+3. Teams sign in using their imported Team ID or team name. No private access code is required. **Trade-off:** anyone who knows an imported Team ID or name can enter that team's workspace and submit or download its solution. For a secure event, enable proper participant authentication before accepting private work.
 4. Enter the 20 official public briefs, initial prices and private constraints in Problems & release. No invented or sample problems are seeded into production.
 5. Preview, then release selected/all briefs. Start the 10–15 minute review phase.
 6. Set phase to Bidding. Open `/auction` in another tab on the **same laptop and browser profile**, move it to the projector, and enter fullscreen. Take control in admin.
@@ -57,8 +57,8 @@ node --env-file=.env server.js
 - A critical admin operation is retained in sessionStorage until confirmed. If a response is lost, use **Retry pending save**; do not create a different sale.
 - Offline projector changes are permitted. Final sales, credit changes and reveals cannot be confirmed offline. Unsaved bidding prices may be lost if the laptop/storage fails; confirmed sales remain in MongoDB.
 - Reversal is supported before a team's constraints are revealed. After reveal, reassignment is intentionally blocked because confidentiality cannot be restored.
-- Team sessions are signed, expire in eight hours, use HttpOnly/SameSite=Strict cookies and Secure on Vercel. Resetting a code revokes that team's old sessions.
-- Released briefs, projector, and credit APIs require a valid login; the projector additionally requires the organiser session. The backend never returns hidden constraints through these APIs. Team identity comes from the signed session, not a URL parameter.
+- Team sessions are signed, expire in eight hours, use HttpOnly/SameSite=Strict cookies and Secure on Vercel. Organiser session rotation can revoke active sessions, but Team ID-only login lets a person sign in again without a secret.
+- Released briefs, projector, and credit APIs require a signed session (Team ID-only sign-in does not verify team ownership); the projector additionally requires the organiser session. The backend never returns hidden constraints through these APIs. Team identity comes from the signed session, not a URL parameter.
 - CSP, same-origin mutation checks, persistent login throttling, safe DOM text rendering, CSV formula escaping and strict input limits are included.
 - Shared Atlas cluster capacity remains shared even with separate databases/users. No claim of zero latency or immunity from hosting/network outages is made.
 
@@ -78,7 +78,7 @@ The local runtime may prohibit MongoDB's process startup. A passed HTTP test dou
 
 ## Manual event acceptance
 
-- Two team logins: one team cannot read another team's twist, including direct API requests.
+- Two team sessions: requests are isolated to their claimed Team ID, but because IDs alone are not secrets, impersonation remains possible.
 - Same-laptop controller/projector: price changes, next/previous, refresh, lost Wi-Fi and restoration.
 - Import preview and retry without duplicate rows or balance resets.
 - Double sale, competing sale, unaffordable sale, lost-response retry, correction and export.

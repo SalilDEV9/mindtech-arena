@@ -1,5 +1,5 @@
 'use strict';
-const {randomUUID,createHmac}=require('node:crypto');
+const {randomUUID}=require('node:crypto');
 const {parse}=require('csv-parse/sync');
 class Fault extends Error { constructor(status,message){super(message);this.status=status;} }
 function ensure(ok,message,status=400){if(!ok)throw new Fault(status,message);}
@@ -7,7 +7,6 @@ function text(v,max=5000){ensure(typeof v==='string'&&v.trim().length>0&&v.lengt
 function number(v){ensure(Number.isSafeInteger(v)&&v>=0&&v<=1000000,'Credits must be whole numbers from 0 to 1,000,000.');return v;}
 function id(v){ensure(typeof v==='string'&&/^[A-Z0-9_-]{1,40}$/.test(v),'Invalid ID. Use uppercase letters, numbers, - or _.');return v;}
 function initial(){return {_id:'event',revision:0,publicRevision:0,phase:'preparation',reviewEndsAt:null,teams:[],problems:[],controller:null,auction:{sequence:0,problemId:null,price:0,leader:null,status:'upcoming'},updatedAt:new Date().toISOString()};}
-function code(team,secret){return createHmac('sha256',secret).update('team-code:'+team.id+':'+team.codeVersion).digest('base64url').slice(0,14);}
 function csvRows(input){let rows;try{rows=parse(text(input,150000),{columns:h=>h.map(x=>x.trim().toLowerCase().replace(/[ _]/g,'')),skip_empty_lines:true,bom:true,trim:true});}catch{throw new Fault(400,'Invalid CSV. Use the provided template.');}ensure(rows.length>0&&rows.length<=200,'Import 1–200 teams at a time.');const seen=new Set();return rows.map(r=>{const teamId=id(String(r.teamid||'').toUpperCase());ensure(!seen.has(teamId),'Duplicate team ID in CSV: '+teamId);seen.add(teamId);ensure(/^\d+$/.test(r.finalcredits||''),'Final Credits must be a nonnegative integer.');return {id:teamId,name:text(r.teamname,100),leader:text(r.teamleader,100),starting:number(Number(r.finalcredits)),spent:0,assignment:null,revealed:false,codeVersion:randomUUID()};});}
 function publicProblem(p){return {id:p.id,title:p.title,theme:p.theme,brief:p.brief,startingPrice:p.startingPrice};}
 function publicState(s){return {revision:s.publicRevision,phase:s.phase,reviewEndsAt:s.reviewEndsAt,problems:s.problems.filter(p=>p.published).map(p=>({...publicProblem(p),allocated:s.teams.some(t=>t.assignment===p.id)}))};}
@@ -29,4 +28,4 @@ case 'adjust':{text(b.reason,300);const t=s.teams.find(t=>t.id===b.teamId);ensur
 case 'reveal':{ensure(Array.isArray(b.ids)&&b.ids.length>0,'Select assigned teams.');for(const tid of new Set(b.ids)){const t=s.teams.find(t=>t.id===tid);ensure(t&&t.assignment,'Every selected team must have an assignment.');const p=s.problems.find(p=>p.id===t.assignment);ensure(p,'Assigned problem is missing.');const count=releasedCount(t,p);ensure(count<constraintStages(p).length,'All constraints are already released.');t.revealedCount=count+1;t.revealed=t.revealedCount===constraintStages(p).length;}break;}
 case 'rotate':{const t=s.teams.find(t=>t.id===b.teamId);ensure(t,'Unknown team.');t.codeVersion=randomUUID();break;}
 default:throw new Fault(404,'Unknown action.');}s.revision++;if(!['auction','claim'].includes(action))s.publicRevision++;s.updatedAt=new Date().toISOString();return result;}
-module.exports={Fault,ensure,text,number,id,initial,code,csvRows,publicState,teamState,publicProblem,apply,constraintStages,releasedCount};
+module.exports={Fault,ensure,text,number,id,initial,csvRows,publicState,teamState,publicProblem,apply,constraintStages,releasedCount};
