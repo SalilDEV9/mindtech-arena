@@ -15,3 +15,15 @@ body{background:radial-gradient(ellipse at 80% 0, #ff003c14,transparent 48%),lin
 @media(prefers-reduced-motion:reduce){.ps-new,.ps-impact{animation:none!important}.ps-card:hover{transform:none}}
 
 .forge-guide ol{padding-left:24px;line-height:1.8}.forge-guide li{margin:10px 0}.admin-layout #admin-problems .row{flex-wrap:wrap}#allocation-summary{margin-top:20px;line-height:1.6}
+
+/* Accessible touch-friendly multi-PS selectors, shared by bidding and allocation. */
+.ps-pick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:340px;overflow-y:auto;padding:10px;margin:12px 0 18px;background:#08080d;border:1px solid #402332;border-radius:8px}
+.ps-pick{display:flex;align-items:flex-start;gap:12px;padding:13px;border-radius:8px;border:1px solid #452331;background:#1b1320;cursor:pointer;min-width:0;margin:0;line-height:1.4}
+.ps-pick:has(input:checked){border-color:#ff4770;background:#411527;box-shadow:inset 0 0 0 1px #ff003c55}
+.ps-pick input{width:20px;height:20px;flex:none;accent-color:#ff003c;margin:0}
+.ps-pick span{min-width:0;overflow-wrap:anywhere;font-size:13px}
+.ps-pick strong{color:#ff7996}
+.ps-pick small{display:block;color:#b7aab1;margin-top:5px}
+.bundle-head{margin:14px 0 22px}
+.display[data-status=open] .display-brief{white-space:pre-wrap}
+@media(max-width:680px){.ps-pick-grid{grid-template-columns:1fr;max-height:300px}.ps-pick{padding:12px}}

@@ -48,6 +48,15 @@ node --env-file=.env server.js
 8. Set phase to Challenge work. Release twists for selected/all assigned teams. Every team receives only its assigned constraints.
 9. Export results. Keep deployments frozen during the event.
 
+## Multi-problem bundles
+
+- In **01 Direct allocation**, select multiple PS checkboxes, choose one team, and enter a **total** credit deduction. Zero credits is a free bundle.
+- In **07 Bidding / projector**, select multiple released PS checkboxes to form one lot; the bid must meet the **sum of their starting prices**. Confirming sold allocates all selected PSs atomically and deducts the lot price only once.
+- A team can receive additional PSs until it submits a solution; each PS is exclusive to one team. Existing single-PS team data and credits are preserved.
+- Team workspaces list all assigned PSs, each with independent staged constraints; organisers reveal constraints per team and PS.
+- A team still uploads **one combined solution PDF or DOCX** for its assigned bundle. Once submitted, new assignments are blocked. Reversing allocation reverses the whole bundle and is forbidden after any constraint reveal or submission.
+- Projector bundle slides show every selected problem. Before releasing a lot, verify the selected IDs and the combined price. Team ID-only login remains impersonable and is not suitable for protecting sensitive submissions.
+
 ## Reliability model
 
 - Projector content is preloaded. `BroadcastChannel` carries immediate same-laptop changes; localStorage is a recovery cache of **public data only**. The database is MongoDB only.

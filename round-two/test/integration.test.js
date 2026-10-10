@@ -36,4 +36,24 @@ test('session rotation revokes old sessions but allows a fresh Team ID login',as
 test('public revision does not churn with price updates; unchanged team polling is tiny',async()=>{const t=(await store.read()).teams[1];const login=await request('/api/login',{body:{teamId:t.id}});const cookie=login.headers.get('set-cookie').split(';')[0];const me=(await request('/api/me',{cookie})).data;await action('auction',{owner,sequence:100,problemId:'PS03',price:20,status:'open'});const r=await request('/api/me?version='+me.revision,{cookie});assert.equal(r.data.unchanged,true);assert.ok(JSON.stringify(r.data).length<100);});
 test('tampered session rejected and logout clears cookie',async()=>{assert.equal((await request('/api/me',{cookie:adminCookie+'x'})).status,401);const r=await request('/api/logout',{body:{},cookie:adminCookie});assert.match(r.headers.get('set-cookie'),/Max-Age=0/);});
 test('concurrent read load: 100 requests preserve isolation',async()=>{const start=performance.now();const responses=await Promise.all(Array.from({length:100},()=>request('/api/public',{cookie:adminCookie})));assert.ok(responses.every(r=>r.status===200&&!JSON.stringify(r.data).includes('PRIVATE')));console.log('100 concurrent local reads: '+Math.round(performance.now()-start)+'ms total (not a production latency guarantee)');});
+
+test('HTTP: one team receives a multi-PS bundle with independent private reveals',async()=>{
+ const p={...problem('PS05'),constraints:'Constraint 1: SECOND_SECRET\n\nConstraint 2: LATER_SECRET'};
+ assert.equal((await action('problem',p)).status,200);
+ assert.equal((await action('publish',{ids:['PS05'],published:true})).status,200);
+ const r=await action('allocate',{teamId:'T2',problemIds:['PS03','PS05'],price:15});
+ assert.equal(r.status,200);assert.deepEqual(r.data.problemIds,['PS03','PS05']);
+ const login=await request('/api/login',{body:{teamId:'T2'}});assert.equal(login.status,200);
+ const cookie=login.headers.get('set-cookie').split(';')[0];
+ const before=(await request('/api/me',{cookie})).data;
+ assert.deepEqual(before.assignments.map(p=>p.id),['PS03','PS05']);
+ assert.ok(!JSON.stringify(before).includes('SECOND_SECRET'));
+ assert.equal((await action('reveal',{items:[{teamId:'T2',problemId:'PS05'}]})).status,200);
+ const after=(await request('/api/me',{cookie})).data;
+ assert.equal(after.assignments[0].constraints,null);
+ assert.match(after.assignments[1].constraints,/SECOND_SECRET/);
+ assert.ok(!JSON.stringify(after).includes('LATER_SECRET'));
+ const other=await request('/api/login',{body:{teamId:'T1'}});
+ assert.ok(!JSON.stringify((await request('/api/me',{cookie:other.headers.get('set-cookie').split(';')[0]})).data).includes('SECOND_SECRET'));
+});
 test('database outage fails closed and does not report a sale success',async()=>{await store.close();const r=await action('sale',{owner,teamId:'T3',problemId:'PS03',price:20});assert.equal(r.status,503);assert.ok(!r.data.ok);});
