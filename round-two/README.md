@@ -6,10 +6,10 @@ The separate `round-2` branch contains the other Round 2 upload. This Ideathon i
 
 ## Screens
 
-- `/`: team sign-in, public problem board, assigned challenge and private twist.
+- `/`: team sign-in, authenticated challenge board, assigned challenge and private twist.
 - `/admin`: CSV import, problem authoring/release, phase timer, manual auction control, allocation, credit correction, reveal and audit.
-- `/auction`: independent projector display, one public problem at a time.
-- `/board`: Round 2 credit board. This does not change the Round 1 leaderboard.
+- `/auction`: organiser-authenticated projector display, one released problem at a time.
+- `/board`: authenticated Round 2 credit board. This does not change the Round 1 leaderboard.
 
 ## Production configuration
 
@@ -58,7 +58,7 @@ node --env-file=.env server.js
 - Offline projector changes are permitted. Final sales, credit changes and reveals cannot be confirmed offline. Unsaved bidding prices may be lost if the laptop/storage fails; confirmed sales remain in MongoDB.
 - Reversal is supported before a team's constraints are revealed. After reveal, reassignment is intentionally blocked because confidentiality cannot be restored.
 - Team sessions are signed, expire in eight hours, use HttpOnly/SameSite=Strict cookies and Secure on Vercel. Resetting a code revokes that team's old sessions.
-- The backend never returns hidden constraints through public/projector/credit APIs. Team identity comes from the signed session, not a URL parameter.
+- Released briefs, projector, and credit APIs require a valid login; the projector additionally requires the organiser session. The backend never returns hidden constraints through these APIs. Team identity comes from the signed session, not a URL parameter.
 - CSP, same-origin mutation checks, persistent login throttling, safe DOM text rendering, CSV formula escaping and strict input limits are included.
 - Shared Atlas cluster capacity remains shared even with separate databases/users. No claim of zero latency or immunity from hosting/network outages is made.
 
