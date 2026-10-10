@@ -13,3 +13,5 @@ body{background:radial-gradient(ellipse at 80% 0, #ff003c14,transparent 48%),lin
 @media(max-width:900px){.panel-links{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-layout .tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){.problem-filters{grid-template-columns:1fr;gap:10px}.panel-links a{padding:14px}.panel-links strong{font-size:18px}.panel-links span{font-size:11px}.admin-layout .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.ps-reveal-head h2{font-size:36px}.modal{padding:20px}.ps-section p{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.ps-new,.ps-impact{animation:none!important}.ps-card:hover{transform:none}}
+
+.forge-guide ol{padding-left:24px;line-height:1.8}.forge-guide li{margin:10px 0}.admin-layout #admin-problems .row{flex-wrap:wrap}#allocation-summary{margin-top:20px;line-height:1.6}

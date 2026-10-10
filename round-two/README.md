@@ -98,3 +98,9 @@ Files are stored as BSON binary in the isolated Round 2 database's `submissions`
 Validation checks the filename and actual PDF signature / DOCX ZIP structure. DOCX archives with encryption, macros, excessive entries or oversized expanded contents are rejected. Validation is not an antivirus scan. Downloads are authenticated attachments.
 
 Checks: `ROUND2_TEST_MEMORY=1 npm test` runs the HTTP and UI regression tests with an isolated test double. `ROUND2_TEST_MONGO=1 node --test test/submissions.test.js` verifies actual MongoDB transactions with an ephemeral local replica set.
+
+## Guided PS release and allocation
+
+In **02 Release PS**, click **Release this PS** beside a draft to publish its brief to everyone. Click **Show / allocate** beside an available released PS to acquire controller access and put that PS on the projector. Set the event phase to **Bidding**, choose the winning team and final credits in **01 Allocate PS**, review the summary, and click **4. Confirm allocation to team**. Allocation and credit deduction still use the existing transactional sale endpoint.
+
+The participant reveal and projector use a short two-burst game-show buzzer instead of the old quiet impact / instrumental cue. Click **Enable reveal buzzer** once to allow browser audio; the projector includes **Test buzzer** and a volume slider defaulting to 100%. Output loudness also depends on system and speaker volume.
