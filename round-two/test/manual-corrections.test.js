@@ -41,3 +41,14 @@ test('corrections reject submitted teams and ignore unrelated credit adjustments
  apply(s,'editCredits',{teamId:'T1',starting:210,spent:35,expectedStarting:200,expectedSpent:35,reason:'Score updated'},'admin');
  assert.equal(s.teams[0].starting,210);
 });
+
+test('organiser PS editor is a single text input, without checkbox selection or reason field',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const html=fs.readFileSync(path.join(__dirname,'../public/admin.html'),'utf8');
+ const js=fs.readFileSync(path.join(__dirname,'../public/app.js'),'utf8');
+ assert.match(html,/id="edit-ps-numbers" type="text"/);
+ assert.doesNotMatch(html,/id="edit-ps-list"|id="edit-ps-reason"/);
+ assert.match(js,/function parseManualPS\(/);
+ assert.match(js,/reason:'Manual PS number edit by organiser'/);
+ assert.doesNotMatch(js,/\.edit-ps-check/);
+});

@@ -40,6 +40,27 @@ function renderTeam(d){if(d.unchanged)return;window.dispatchEvent(new CustomEven
 async function pollTeam(){try{const d=await api('/api/me?version='+teamVersion);if(d.role==='admin'){message('You are signed in as an organiser. Open the organiser panel or sign out to use a Team ID.');$('logout').hidden=false;$('challenge-board').hidden=false;cards((await api('/api/public')).problems);}else{renderTeam(d);connection(true);}}catch(e){if(e.status===401){$('login').hidden=false;$('workspace').hidden=true;$('logout').hidden=true;$('challenge-board').hidden=true;teamVersion=-1;lastAssignment='';hasTeamSnapshot=false;publicProblems=[];cardFingerprint='';seenProblems.clear();if($('phase'))$('phase').textContent='SIGN IN REQUIRED';}else{connection(false);message(e.message);}}pollTimer=setTimeout(pollTeam,3000+Math.random()*700);}
 function table(head,rows){return `<table><thead><tr>${head.map(h=>'<th>'+esc(h)+'</th>').join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;}
 function selected(selector){return [...document.querySelectorAll(selector+':checked')].map(n=>n.value);}
+function parseManualPS(raw){
+ const entries=raw.trim()?raw.trim().split(/[\s,;]+/).filter(Boolean):[];
+ if(entries.length>30)throw new Error('Enter no more than 30 PS numbers.');
+ const mapped=entries.map(entry=>{
+  const normalized=entry.toUpperCase();
+  const exact=current.problems.find(p=>p.id===normalized);
+  let ps=exact;
+  if(!ps){
+   const numeric=/^(?:PS)?0*(\d+)$/.exec(normalized);
+   if(numeric){
+    const matches=current.problems.filter(p=>{const id=/^PS0*(\d+)$/.exec(p.id);return id&&Number(id[1])===Number(numeric[1]);});
+    if(matches.length===1)ps=matches[0];
+   }
+  }
+  if(!ps)throw new Error('Unknown PS number: '+entry+'. Check 02 Release PS.');
+  if(!ps.published)throw new Error(ps.id+' is not released yet. Release it in 02 Release PS first.');
+  return ps.id;
+ });
+ if(new Set(mapped).size!==mapped.length)throw new Error('The same PS number was entered twice.');
+ return mapped;
+}
 function renderManualEditor(teamId){
  const select=$('edit-team');if(!select)return;
  const wanted=teamId??select.value;
@@ -50,12 +71,11 @@ function renderManualEditor(teamId){
  $('edit-team-summary').textContent=t?t.name+' ('+t.id+') · Starting '+t.starting+' · Spent '+t.spent+' · Available '+(t.starting-t.spent)+' · PS: '+(assignedIds(t).join(', ')||'Not allotted'):'Choose a team to edit.';
  $('edit-starting').value=t?t.starting:'';
  $('edit-spent').value=t?t.spent:'';
- $('edit-credit-reason').value='';$('edit-ps-reason').value='';
+ $('edit-credit-reason').value='';
  const mine=t?assignedIds(t):[];
- $('edit-ps-list').innerHTML=t?current.problems.filter(p=>p.published||mine.includes(p.id)).map(p=>{
-  const owner=current.teams.find(other=>other.id!==t.id&&assignedIds(other).includes(p.id));
-  return '<label class="ps-pick"><input class="edit-ps-check" type="checkbox" value="'+esc(p.id)+'" '+(mine.includes(p.id)?'checked':'')+' '+(owner?'disabled':'')+'><span><strong>'+esc(p.id)+'</strong> · '+esc(p.title)+'<small>'+(owner?'Already allotted to '+esc(owner.id):mine.includes(p.id)?'Currently allotted':'Available')+'</small></span></label>';
- }).join(''):'<p class="muted">Choose a team first.</p>';
+ $('edit-ps-numbers').value=mine.join(', ');
+ const available=t?current.problems.filter(p=>p.published&&!current.teams.some(other=>other.id!==t.id&&assignedIds(other).includes(p.id))).map(p=>p.id):[];
+ $('edit-ps-help').textContent=t?'Available PSs: '+(available.join(', ')||'None')+'. You can type 1 for PS01. Separate multiple PSs with commas. Leave blank to remove all.':'Select a team first.';
 }
 async function loadAdmin(){current=await api('/api/admin/state');$('login').hidden=true;$('admin-workspace').hidden=false;$('retry').hidden=!readPending();connection(true);phase(current);$('phase-select').value=current.phase;
 $('admin-problems').innerHTML=current.problems.length?current.problems.map(p=>`<div class="toolbar"><label><input type="checkbox" class="pick-problem" value="${esc(p.id)}"> ${esc(p.id)} · ${esc(p.title)} <small class="tag">${p.published?'RELEASED':'DRAFT'}</small></label><div class="row">${!p.published?`<button class="primary" data-release-one="${esc(p.id)}">Release this PS</button>`:current.teams.some(t=>assignedIds(t).includes(p.id))?'<span class="tag">ALLOCATED</span>':`<button class="primary" data-allocate-ps="${esc(p.id)}">Show / bid</button><button class="primary" data-direct-ps="${esc(p.id)}">Allocate directly</button>`}<button data-preview="${esc(p.id)}">Preview</button><button data-edit="${esc(p.id)}" ${p.published?'disabled':''}>Edit</button></div></div>`).join(''):'<p class="muted">No problem statements yet. Add your final event content here.</p>';
@@ -64,7 +84,7 @@ document.querySelectorAll('[data-direct-ps]').forEach(b=>b.onclick=()=>{document
 document.querySelectorAll('[data-allocate-ps]').forEach(b=>b.onclick=()=>{document.querySelector('[data-tab="auction"]').click();window.dispatchEvent(new CustomEvent('r2-choose-ps',{detail:{problemId:b.dataset.allocatePs}}));$('tab-auction').scrollIntoView({block:'start'});});
 document.querySelectorAll('[data-preview]').forEach(b=>b.onclick=()=>showProblem(current.problems.find(p=>p.id===b.dataset.preview)));
 document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const p=current.problems.find(p=>p.id===b.dataset.edit);for(const [k,v] of Object.entries(p)){const el=$('problem-form').elements.namedItem(k);if(el)el.value=v;}});
-$('admin-teams').innerHTML=table(['ID / Team','Starting','Spent','Available','Problems','Actions'],current.teams.map(t=>`<tr><td>${esc(t.id)}<br>${esc(t.name)}</td><td>${t.starting}</td><td>${t.spent}</td><td>${t.starting-t.spent}</td><td>${esc(assignedIds(t).join(', ')||'—')}</td><td><button data-edit-team="${esc(t.id)}">Edit credits / PS</button> ${assignedIds(t).length&&!assignedIds(t).some(pid=>stageCount(t,pid)>0)?`<button data-reverse="${esc(t.id)}">Reverse sale</button>`:''}</td></tr>`));
+$('admin-teams').innerHTML=table(['ID / Team','Starting','Spent','Available','Problems','Actions'],current.teams.map(t=>`<tr><td>${esc(t.id)}<br>${esc(t.name)}</td><td>${t.starting}</td><td>${t.spent}</td><td>${t.starting-t.spent}</td><td>${esc(assignedIds(t).join(', ')||'—')}</td><td><button data-edit-team="${esc(t.id)}">Edit PS / credits</button> ${assignedIds(t).length&&!assignedIds(t).some(pid=>stageCount(t,pid)>0)?`<button data-reverse="${esc(t.id)}">Reverse sale</button>`:''}</td></tr>`));
 $('reveal-teams').innerHTML=table(['Select','Team','Problem','Constraints'],current.teams.flatMap(t=>assignedIds(t).map(pid=>`<tr><td><input type="checkbox" class="pick-team" aria-label="Select ${esc(t.name)} ${esc(pid)}" value="${esc(t.id)}|${esc(pid)}" ${hasNext(t,pid)?'':'disabled'}></td><td>${esc(t.name)}</td><td>${esc(pid)}</td><td>${stageCount(t,pid)} / ${stages(current.problems.find(p=>p.id===pid)).length} released</td></tr>`)));
 document.querySelectorAll('[data-edit-team]').forEach(b=>b.onclick=()=>{document.querySelector('[data-tab="teams"]').click();renderManualEditor(b.dataset.editTeam);$('manual-corrections').scrollIntoView({block:'start'});});
 document.querySelectorAll('[data-reverse]').forEach(b=>b.onclick=safe(async()=>{const reason=prompt('Reason to reverse this sale and refund credits');if(reason&&confirm('Reverse allocation and refund this team?'))await mutate('reverse',{teamId:b.dataset.reverse,reason});}));
@@ -99,11 +119,12 @@ on('edit-credit-form',async()=>{
 },'submit');
 on('edit-ps-form',async()=>{
  const t=current.teams.find(t=>t.id===$('edit-team').value);if(!t)throw new Error('Select a team first.');
- const reason=$('edit-ps-reason').value.trim();if(!reason)throw new Error('Enter a reason for the PS correction.');
- const problemIds=selected('.edit-ps-check'),old=assignedIds(t);
+ const problemIds=parseManualPS($('edit-ps-numbers').value),old=assignedIds(t);
  if(JSON.stringify(problemIds)===JSON.stringify(old))throw new Error('PS allotment has not changed.');
- if(!confirm('Replace '+t.id+' PS allotment: '+(old.join(', ')||'None')+' → '+(problemIds.join(', ')||'None')+'? Credits will NOT change.'))return;
- await mutate('editAssignments',{teamId:t.id,problemIds,expectedProblemIds:old,reason});message('PS allotment corrected for '+t.id+'. Credits unchanged.');
+ const other=current.teams.find(other=>other.id!==t.id&&assignedIds(other).some(pid=>problemIds.includes(pid)));
+ if(other)throw new Error('A selected PS is already allotted to '+other.id+'. Remove it from that team first.');
+ if(!confirm('Save '+t.id+' PS numbers: '+(old.join(', ')||'None')+' → '+(problemIds.join(', ')||'None')+'? Credits stay unchanged.'))return;
+ await mutate('editAssignments',{teamId:t.id,problemIds,expectedProblemIds:old,reason:'Manual PS number edit by organiser'});message('PS numbers saved for '+t.id+'. Credits unchanged.');
 },'submit');
 on('export-results',()=>exportCSV('round-two-results.csv',[['Team ID','Team Name','Starting Credits','Spent','Available','Problem','Constraints Released','Total Constraints'],...current.teams.map(t=>[t.id,t.name,t.starting,t.spent,t.starting-t.spent,assignedIds(t).join('; '),assignedIds(t).map(pid=>pid+': '+stageCount(t,pid)).join('; '),assignedIds(t).map(pid=>pid+': '+stages(current.problems.find(p=>p.id===pid)).length).join('; ')])]));
 async function reveal(values){if(!values.length)throw new Error('Select a team and PS with an unreleased constraint.');const items=values.map(v=>{const [teamId,problemId]=v.split('|');return {teamId,problemId};});if(confirm('Reveal the NEXT constraint for '+items.map(x=>x.teamId+' / '+x.problemId).join(', ')+'? This cannot be undone.'))await mutate('reveal',{items});}

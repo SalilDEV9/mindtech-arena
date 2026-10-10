@@ -18,12 +18,13 @@
 <button type="submit" id="edit-credit-save" class="primary">Save credits</button>
 </form>
 <form id="edit-ps-form" class="panel">
-<h3>EDIT ALLOTTED PS NUMBERS</h3>
-<p class="muted tiny">Tick the PSs this team should own. Untick an incorrect PS to remove it. A PS already assigned to another team is unavailable.</p>
-<div id="edit-ps-list" class="ps-pick-grid" role="group" aria-label="Edit allotted problem statements"></div>
-<p class="muted tiny">This does not deduct or refund credits. PSs with revealed private constraints and submitted solutions cannot be removed.</p>
-<label for="edit-ps-reason">Reason for correction</label><input id="edit-ps-reason" maxlength="300" placeholder="e.g. Correct PS number" required>
-<button type="submit" id="edit-ps-save" class="primary">Save PS allotment</button>
+<h3>EDIT PS NUMBER</h3>
+<p class="muted">Type the PS number directly. For multiple PSs, separate with commas.</p>
+<label for="edit-ps-numbers">PS number(s) for this team</label>
+<input id="edit-ps-numbers" type="text" maxlength="300" autocomplete="off" spellcheck="false" placeholder="PS01, PS02" aria-describedby="edit-ps-help">
+<p class="muted tiny" id="edit-ps-help">Example: 1 or PS01. Leave blank to remove all PSs.</p>
+<p class="muted tiny">Saves immediately to the team dashboard; no bidding and no credit deduction or refund. Only released PSs can be assigned. Previously revealed constraints or submitted solutions cannot be removed.</p>
+<button type="submit" id="edit-ps-save" class="primary">Save PS number →</button>
 </form>
 </div>
 </div></section>
